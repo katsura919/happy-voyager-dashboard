@@ -3,15 +3,20 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
-import { Heart, Calendar, Diamond, Settings, Plus, X, Menu } from 'lucide-react';
+import { Heart, Calendar, Diamond, Settings, Plus, X, Menu, BookOpen } from 'lucide-react';
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 
 const sidebarItems = [
     {
-        title: "Heart",
+        title: "Dashboard",
         href: "/dashboard",
         icon: Heart,
+    },
+    {
+        title: "Blog",
+        href: "/dashboard/blog",
+        icon: BookOpen,
     },
     {
         title: "Calendar",
