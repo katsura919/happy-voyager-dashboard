@@ -28,99 +28,112 @@ import { Clear, RichTextClear } from "reactjs-tiptap-editor/clear";
 
 import "reactjs-tiptap-editor/style.css";
 
+import { forwardRef, useImperativeHandle } from "react";
+
+export interface BlogEditorHandle {
+    getHTML: () => string;
+}
+
 interface BlogEditorProps {
     onWordCountChange?: (count: number) => void;
 }
 
-export function BlogEditor({ onWordCountChange }: BlogEditorProps) {
-    const editor = useEditor({
-        immediatelyRender: false,
-        extensions: [
-            Document,
-            Text,
-            Dropcursor,
-            Gapcursor,
-            HardBreak,
-            Paragraph,
-            TrailingNode,
-            ListItem,
-            TextStyle,
-            Placeholder.configure({ placeholder: "Start writing your blog post..." }),
-            Bold,
-            Italic,
-            Strike,
-            TextUnderline,
-            Heading.configure({ levels: [1, 2, 3] }),
-            BulletList,
-            OrderedList,
-            Blockquote,
-            Link.configure({ openOnClick: false }),
-            Image.configure({ resourceImage: "link" }),
-            TextAlign.configure({ types: ["heading", "paragraph"] }),
-            History,
-            HorizontalRule,
-            Highlight,
-            Clear,
-        ],
-        onUpdate: ({ editor }) => {
-            const count = editor.getText().split(/\s+/).filter(Boolean).length;
-            onWordCountChange?.(count);
-        },
-    });
+export const BlogEditor = forwardRef<BlogEditorHandle, BlogEditorProps>(
+    function BlogEditor({ onWordCountChange }, ref) {
+        const editor = useEditor({
+            immediatelyRender: false,
+            extensions: [
+                Document,
+                Text,
+                Dropcursor,
+                Gapcursor,
+                HardBreak,
+                Paragraph,
+                TrailingNode,
+                ListItem,
+                TextStyle,
+                Placeholder.configure({ placeholder: "Start writing your blog post..." }),
+                Bold,
+                Italic,
+                Strike,
+                TextUnderline,
+                Heading.configure({ levels: [1, 2, 3] }),
+                BulletList,
+                OrderedList,
+                Blockquote,
+                Link.configure({ openOnClick: false }),
+                Image.configure({ resourceImage: "link" }),
+                TextAlign.configure({ types: ["heading", "paragraph"] }),
+                History,
+                HorizontalRule,
+                Highlight,
+                Clear,
+            ],
+            onUpdate: ({ editor }) => {
+                const count = editor.getText().split(/\s+/).filter(Boolean).length;
+                onWordCountChange?.(count);
+            },
+        });
 
-    if (!editor) return null;
+        // Expose getHTML to parent via ref
+        useImperativeHandle(ref, () => ({
+            getHTML: () => editor?.getHTML() ?? "",
+        }));
 
-    return (
-        <RichTextProvider editor={editor}>
-            {/* Toolbar */}
-            <div className="flex items-center gap-1 flex-wrap px-4 py-3 border-b border-white/5 shrink-0">
-                <ToolbarGroup>
-                    <RichTextUndo />
-                    <RichTextRedo />
-                </ToolbarGroup>
-                <Divider />
-                <ToolbarGroup>
-                    <RichTextHeading />
-                </ToolbarGroup>
-                <Divider />
-                <ToolbarGroup>
-                    <RichTextBold />
-                    <RichTextItalic />
-                    <RichTextUnderline />
-                    <RichTextStrike />
-                    <RichTextHighlight />
-                </ToolbarGroup>
-                <Divider />
-                <ToolbarGroup>
-                    <RichTextAlign />
-                </ToolbarGroup>
-                <Divider />
-                <ToolbarGroup>
-                    <RichTextBulletList />
-                    <RichTextOrderedList />
-                </ToolbarGroup>
-                <Divider />
-                <ToolbarGroup>
-                    <RichTextBlockquote />
-                    <RichTextLink />
-                    <RichTextHorizontalRule />
-                </ToolbarGroup>
-                <Divider />
-                <ToolbarGroup>
-                    <RichTextClear />
-                </ToolbarGroup>
-            </div>
+        if (!editor) return null;
 
-            {/* Content */}
-            <div className="flex-1 overflow-y-auto p-6">
-                <EditorContent
-                    editor={editor}
-                    className="prose prose-invert max-w-none min-h-[300px] focus:outline-none [&_.tiptap]:outline-none [&_.tiptap]:min-h-[300px]"
-                />
-            </div>
-        </RichTextProvider>
-    );
-}
+        return (
+            <RichTextProvider editor={editor}>
+                {/* Toolbar */}
+                <div className="flex items-center gap-1 flex-wrap px-4 py-3 border-b border-white/5 shrink-0">
+                    <ToolbarGroup>
+                        <RichTextUndo />
+                        <RichTextRedo />
+                    </ToolbarGroup>
+                    <Divider />
+                    <ToolbarGroup>
+                        <RichTextHeading />
+                    </ToolbarGroup>
+                    <Divider />
+                    <ToolbarGroup>
+                        <RichTextBold />
+                        <RichTextItalic />
+                        <RichTextUnderline />
+                        <RichTextStrike />
+                        <RichTextHighlight />
+                    </ToolbarGroup>
+                    <Divider />
+                    <ToolbarGroup>
+                        <RichTextAlign />
+                    </ToolbarGroup>
+                    <Divider />
+                    <ToolbarGroup>
+                        <RichTextBulletList />
+                        <RichTextOrderedList />
+                    </ToolbarGroup>
+                    <Divider />
+                    <ToolbarGroup>
+                        <RichTextBlockquote />
+                        <RichTextLink />
+                        <RichTextHorizontalRule />
+                    </ToolbarGroup>
+                    <Divider />
+                    <ToolbarGroup>
+                        <RichTextClear />
+                    </ToolbarGroup>
+                </div>
+
+                {/* Content */}
+                <div className="flex-1 overflow-y-auto p-6">
+                    <EditorContent
+                        editor={editor}
+                        className="prose prose-invert max-w-none min-h-[300px] focus:outline-none [&_.tiptap]:outline-none [&_.tiptap]:min-h-[300px]"
+                    />
+                </div>
+            </RichTextProvider>
+        );
+    }
+);
 
 function ToolbarGroup({ children }: { children: React.ReactNode }) {
     return <div className="flex items-center gap-0.5">{children}</div>;

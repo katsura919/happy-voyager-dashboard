@@ -1,23 +1,73 @@
 "use client";
 
-import { Suspense, useState } from "react";
-import { BlogEditor } from "@/components/blog/blog-editor";
-import { ArrowLeft, Save, Tag, Calendar, Image as ImageIcon, Globe, Lock } from "lucide-react";
+import { Suspense, useState, useRef } from "react";
+import { useMutation } from "@tanstack/react-query";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
+import { BlogEditor, BlogEditorHandle } from "@/components/blog/blog-editor";
+import { createBlogPost } from "@/hooks/blog";
+import { uploadToCloudinary } from "@/hooks/cloudinary";
+import { ArrowLeft, Save, Tag, Calendar, ImageIcon, Globe, Lock, Upload, X, Loader2 } from "lucide-react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 
 const CATEGORIES = ["Travel Tips", "Destinations", "Food & Culture", "Budget Travel", "Safety", "Luxury", "Family Travel", "Eco Travel", "Digital Nomad", "Cruises"];
 
 function NewBlogPageInner() {
+    const router = useRouter();
+    const editorRef = useRef<BlogEditorHandle>(null);
+
     const [title, setTitle] = useState("");
     const [excerpt, setExcerpt] = useState("");
     const [category, setCategory] = useState(CATEGORIES[0]);
     const [tags, setTags] = useState<string[]>([]);
     const [tagInput, setTagInput] = useState("");
-    const [coverImage, setCoverImage] = useState("");
+    const [coverImageUrl, setCoverImageUrl] = useState("");
+    const [coverImagePreview, setCoverImagePreview] = useState("");
     const [status, setStatus] = useState<"draft" | "published">("draft");
-    const [isSaving, setIsSaving] = useState(false);
+    const [publishDate, setPublishDate] = useState(new Date().toISOString().split("T")[0]);
     const [wordCount, setWordCount] = useState(0);
+    const [isUploading, setIsUploading] = useState(false);
+
+    // TanStack Query mutation for creating a blog post
+    const { mutate: savePost, isPending } = useMutation({
+        mutationFn: createBlogPost,
+        onSuccess: () => {
+            toast.success(status === "published" ? "Post published!" : "Draft saved!");
+            router.push("/dashboard/blog");
+        },
+        onError: (error: Error) => {
+            toast.error(error.message ?? "Something went wrong");
+        },
+    });
+
+    const handleCoverImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        // Show local preview immediately
+        const localPreview = URL.createObjectURL(file);
+        setCoverImagePreview(localPreview);
+        setCoverImageUrl(""); // clear until upload completes
+
+        setIsUploading(true);
+        try {
+            const url = await uploadToCloudinary(file);
+            setCoverImageUrl(url);
+            setCoverImagePreview(url);
+            toast.success("Cover image uploaded!");
+        } catch (err: any) {
+            toast.error(err.message ?? "Image upload failed");
+            setCoverImagePreview("");
+        } finally {
+            setIsUploading(false);
+        }
+    };
+
+    const handleRemoveCover = () => {
+        setCoverImageUrl("");
+        setCoverImagePreview("");
+    };
 
     const handleAddTag = (e: React.KeyboardEvent<HTMLInputElement>) => {
         if ((e.key === "Enter" || e.key === ",") && tagInput.trim()) {
@@ -32,12 +82,27 @@ function NewBlogPageInner() {
         setTags(tags.filter((t) => t !== tag));
     };
 
-    const handleSave = async (publishStatus: "draft" | "published") => {
-        setIsSaving(true);
-        setStatus(publishStatus);
-        await new Promise((r) => setTimeout(r, 1000));
-        setIsSaving(false);
-        // TODO: wire up to actual API
+    const handleSave = (saveStatus: "draft" | "published") => {
+        if (!title.trim()) {
+            toast.error("Please add a title before saving");
+            return;
+        }
+        if (isUploading) {
+            toast.error("Please wait for the image to finish uploading");
+            return;
+        }
+
+        setStatus(saveStatus);
+        savePost({
+            title,
+            excerpt,
+            content: editorRef.current?.getHTML() ?? "",
+            cover_image_url: coverImageUrl,
+            category,
+            tags,
+            status: saveStatus,
+            publish_date: publishDate || null,
+        });
     };
 
     return (
@@ -59,19 +124,19 @@ function NewBlogPageInner() {
                 <div className="flex items-center gap-2">
                     <button
                         onClick={() => handleSave("draft")}
-                        disabled={isSaving}
+                        disabled={isPending || isUploading}
                         className="flex items-center gap-2 px-4 py-2 rounded-full text-sm border border-white/10 text-muted-foreground hover:text-foreground hover:border-white/30 transition-all disabled:opacity-50"
                     >
-                        <Save size={14} />
+                        {isPending && status === "draft" ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />}
                         Save Draft
                     </button>
                     <button
                         onClick={() => handleSave("published")}
-                        disabled={isSaving}
+                        disabled={isPending || isUploading}
                         className="flex items-center gap-2 px-5 py-2 rounded-full text-sm bg-primary text-primary-foreground font-semibold hover:opacity-90 transition-opacity disabled:opacity-50"
                     >
-                        <Globe size={14} />
-                        {isSaving ? "Publishing..." : "Publish"}
+                        {isPending && status === "published" ? <Loader2 size={14} className="animate-spin" /> : <Globe size={14} />}
+                        {isPending && status === "published" ? "Publishing..." : "Publish"}
                     </button>
                 </div>
             </div>
@@ -104,12 +169,12 @@ function NewBlogPageInner() {
 
                     {/* Rich Text Editor */}
                     <div className="bg-card rounded-[20px] border border-white/5 flex flex-col flex-1 overflow-hidden">
-                        <BlogEditor onWordCountChange={setWordCount} />
+                        <BlogEditor ref={editorRef} onWordCountChange={setWordCount} />
                     </div>
                 </div>
 
                 {/* Sidebar */}
-                <div className="w-72 shrink-0 flex flex-col gap-4">
+                <div className="w-72 shrink-0 flex flex-col gap-4 overflow-y-auto">
                     {/* Status */}
                     <div className="bg-card rounded-[20px] border border-white/5 p-5">
                         <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">Status</h3>
@@ -188,21 +253,35 @@ function NewBlogPageInner() {
                         <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3 flex items-center gap-2">
                             <ImageIcon size={12} /> Cover Image
                         </h3>
-                        <input
-                            type="text"
-                            placeholder="Paste image URL..."
-                            value={coverImage}
-                            onChange={(e) => setCoverImage(e.target.value)}
-                            className="w-full bg-background/50 border border-white/10 rounded-xl px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:border-primary/50 transition-colors"
-                        />
-                        {coverImage ? (
-                            <div className="mt-3 rounded-xl overflow-hidden aspect-video">
-                                <img src={coverImage} alt="Cover" className="w-full h-full object-cover" />
+
+                        {coverImagePreview ? (
+                            <div className="relative rounded-xl overflow-hidden aspect-video">
+                                <img src={coverImagePreview} alt="Cover" className="w-full h-full object-cover" />
+                                {isUploading && (
+                                    <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
+                                        <Loader2 size={24} className="animate-spin text-white" />
+                                    </div>
+                                )}
+                                {!isUploading && (
+                                    <button
+                                        onClick={handleRemoveCover}
+                                        className="absolute top-2 right-2 w-7 h-7 rounded-full bg-black/60 flex items-center justify-center text-white hover:bg-black/80 transition-colors"
+                                    >
+                                        <X size={14} />
+                                    </button>
+                                )}
                             </div>
                         ) : (
-                            <div className="mt-3 rounded-xl border border-dashed border-white/10 aspect-video flex items-center justify-center text-muted-foreground/30">
-                                <ImageIcon size={32} />
-                            </div>
+                            <label className="mt-1 rounded-xl border border-dashed border-white/10 aspect-video flex flex-col items-center justify-center gap-2 text-muted-foreground/50 hover:border-white/30 hover:text-muted-foreground transition-all cursor-pointer">
+                                <Upload size={24} />
+                                <span className="text-xs">Click to upload</span>
+                                <input
+                                    type="file"
+                                    accept="image/*"
+                                    className="hidden"
+                                    onChange={handleCoverImageChange}
+                                />
+                            </label>
                         )}
                     </div>
 
@@ -213,7 +292,8 @@ function NewBlogPageInner() {
                         </h3>
                         <input
                             type="date"
-                            defaultValue={new Date().toISOString().split("T")[0]}
+                            value={publishDate}
+                            onChange={(e) => setPublishDate(e.target.value)}
                             className="w-full bg-background/50 border border-white/10 rounded-xl px-3 py-2 text-sm text-foreground focus:outline-none focus:border-primary/50 transition-colors"
                         />
                     </div>

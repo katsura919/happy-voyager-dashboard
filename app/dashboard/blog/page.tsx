@@ -1,169 +1,12 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { Search, LayoutGrid, List, Plus, Calendar, Eye, Heart, MoreHorizontal, Tag } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { Search, LayoutGrid, List, Plus, Calendar, Tag, MoreHorizontal, Loader2, FileText } from "lucide-react";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
-
-// --- Dummy Data ---
-const DUMMY_BLOGS = [
-    {
-        id: "1",
-        title: "10 Tips for a Stress-Free Vacation",
-        excerpt: "Planning a vacation can be overwhelming. Here are our top tips to make your next trip smooth and enjoyable from start to finish.",
-        category: "Travel Tips",
-        status: "published",
-        author: "Jane Doe",
-        date: "2026-02-10",
-        views: 1240,
-        likes: 87,
-        image: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=400&q=80",
-        tags: ["travel", "tips", "vacation"],
-    },
-    {
-        id: "2",
-        title: "Best Hidden Gems in Southeast Asia",
-        excerpt: "Discover the lesser-known destinations in Southeast Asia that will take your breath away without the tourist crowds.",
-        category: "Destinations",
-        status: "published",
-        author: "John Smith",
-        date: "2026-02-08",
-        views: 3560,
-        likes: 214,
-        image: "https://images.unsplash.com/photo-1528360983277-13d401cdc186?w=400&q=80",
-        tags: ["asia", "hidden gems", "adventure"],
-    },
-    {
-        id: "3",
-        title: "How to Pack Light for a 2-Week Trip",
-        excerpt: "Master the art of minimalist packing with our comprehensive guide. Never pay for checked baggage again.",
-        category: "Travel Tips",
-        status: "draft",
-        author: "Jane Doe",
-        date: "2026-02-05",
-        views: 0,
-        likes: 0,
-        image: "https://images.unsplash.com/photo-1553531384-cc64ac80f931?w=400&q=80",
-        tags: ["packing", "tips", "minimalist"],
-    },
-    {
-        id: "4",
-        title: "A Food Lover's Guide to Italy",
-        excerpt: "From Neapolitan pizza to Sicilian arancini, explore the incredible culinary landscape of Italy region by region.",
-        category: "Food & Culture",
-        status: "published",
-        author: "Maria Rossi",
-        date: "2026-02-01",
-        views: 2890,
-        likes: 176,
-        image: "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=400&q=80",
-        tags: ["food", "italy", "culture"],
-    },
-    {
-        id: "5",
-        title: "Budget Travel: Europe Under $50/Day",
-        excerpt: "Yes, it's possible! We break down how to experience Europe's best cities without breaking the bank.",
-        category: "Budget Travel",
-        status: "published",
-        author: "Alex Turner",
-        date: "2026-01-28",
-        views: 5120,
-        likes: 342,
-        image: "https://images.unsplash.com/photo-1467269204594-9661b134dd2b?w=400&q=80",
-        tags: ["budget", "europe", "backpacking"],
-    },
-    {
-        id: "6",
-        title: "The Ultimate Guide to Solo Travel Safety",
-        excerpt: "Solo travel is incredibly rewarding. Learn the essential safety tips every solo traveler should know.",
-        category: "Safety",
-        status: "published",
-        author: "Sarah Lee",
-        date: "2026-01-22",
-        views: 4300,
-        likes: 289,
-        image: "https://images.unsplash.com/photo-1501555088652-021faa106b9b?w=400&q=80",
-        tags: ["solo", "safety", "tips"],
-    },
-    {
-        id: "7",
-        title: "Top 5 Luxury Resorts in the Maldives",
-        excerpt: "Indulge in paradise. We review the most stunning overwater bungalows and luxury resorts the Maldives has to offer.",
-        category: "Luxury",
-        status: "published",
-        author: "John Smith",
-        date: "2026-01-18",
-        views: 6780,
-        likes: 415,
-        image: "https://images.unsplash.com/photo-1514282401047-d79a71a590e8?w=400&q=80",
-        tags: ["luxury", "maldives", "resort"],
-    },
-    {
-        id: "8",
-        title: "Family Travel: Making Memories in Japan",
-        excerpt: "Japan is one of the most family-friendly destinations in the world. Here's how to plan the perfect trip with kids.",
-        category: "Family Travel",
-        status: "draft",
-        author: "Maria Rossi",
-        date: "2026-01-15",
-        views: 0,
-        likes: 0,
-        image: "https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?w=400&q=80",
-        tags: ["family", "japan", "kids"],
-    },
-    {
-        id: "9",
-        title: "Eco-Tourism: Travel Responsibly",
-        excerpt: "Learn how to minimize your environmental footprint while still exploring the world's most beautiful places.",
-        category: "Eco Travel",
-        status: "published",
-        author: "Alex Turner",
-        date: "2026-01-10",
-        views: 1980,
-        likes: 143,
-        image: "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=400&q=80",
-        tags: ["eco", "sustainable", "nature"],
-    },
-    {
-        id: "10",
-        title: "Digital Nomad Hotspots for 2026",
-        excerpt: "The best cities around the world for remote workers, ranked by cost of living, internet speed, and community.",
-        category: "Digital Nomad",
-        status: "published",
-        author: "Sarah Lee",
-        date: "2026-01-05",
-        views: 7890,
-        likes: 521,
-        image: "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=400&q=80",
-        tags: ["remote work", "nomad", "2026"],
-    },
-    {
-        id: "11",
-        title: "Road Trip Essentials: What to Pack",
-        excerpt: "From snacks to emergency kits, here's everything you need to make your road trip comfortable and safe.",
-        category: "Travel Tips",
-        status: "published",
-        author: "Jane Doe",
-        date: "2025-12-28",
-        views: 2340,
-        likes: 167,
-        image: "https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?w=400&q=80",
-        tags: ["road trip", "packing", "car"],
-    },
-    {
-        id: "12",
-        title: "Cruise Vacation: Pros and Cons",
-        excerpt: "Thinking about a cruise? We give you an honest breakdown of what to expect so you can decide if it's right for you.",
-        category: "Cruises",
-        status: "draft",
-        author: "John Smith",
-        date: "2025-12-20",
-        views: 0,
-        likes: 0,
-        image: "https://images.unsplash.com/photo-1548574505-5e239809ee19?w=400&q=80",
-        tags: ["cruise", "ocean", "vacation"],
-    },
-];
+import { fetchBlogPosts } from "@/hooks/blog";
+import { BlogPost } from "@/types/blogs.types";
 
 const ITEMS_PER_PAGE = 6;
 const CATEGORIES = ["All", "Travel Tips", "Destinations", "Food & Culture", "Budget Travel", "Safety", "Luxury", "Family Travel", "Eco Travel", "Digital Nomad", "Cruises"];
@@ -178,35 +21,29 @@ export default function BlogPage() {
     const [selectedCategory, setSelectedCategory] = useState("All");
     const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
 
+    const { data: posts = [], isLoading, isError } = useQuery({
+        queryKey: ["blog-posts"],
+        queryFn: () => fetchBlogPosts(),
+    });
+
+    // Client-side filtering (search + category + status)
     const filtered = useMemo(() => {
-        return DUMMY_BLOGS.filter((blog) => {
+        return posts.filter((post) => {
             const matchesSearch =
-                blog.title.toLowerCase().includes(search.toLowerCase()) ||
-                blog.excerpt.toLowerCase().includes(search.toLowerCase()) ||
-                blog.author.toLowerCase().includes(search.toLowerCase());
-            const matchesCategory = selectedCategory === "All" || blog.category === selectedCategory;
-            const matchesStatus = statusFilter === "all" || blog.status === statusFilter;
+                post.title.toLowerCase().includes(search.toLowerCase()) ||
+                post.excerpt.toLowerCase().includes(search.toLowerCase());
+            const matchesCategory = selectedCategory === "All" || post.category === selectedCategory;
+            const matchesStatus = statusFilter === "all" || post.status === statusFilter;
             return matchesSearch && matchesCategory && matchesStatus;
         });
-    }, [search, selectedCategory, statusFilter]);
+    }, [posts, search, selectedCategory, statusFilter]);
 
     const totalPages = Math.ceil(filtered.length / ITEMS_PER_PAGE);
     const paginated = filtered.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE);
 
-    const handleSearch = (val: string) => {
-        setSearch(val);
-        setCurrentPage(1);
-    };
-
-    const handleCategory = (cat: string) => {
-        setSelectedCategory(cat);
-        setCurrentPage(1);
-    };
-
-    const handleStatus = (s: StatusFilter) => {
-        setStatusFilter(s);
-        setCurrentPage(1);
-    };
+    const handleSearch = (val: string) => { setSearch(val); setCurrentPage(1); };
+    const handleCategory = (cat: string) => { setSelectedCategory(cat); setCurrentPage(1); };
+    const handleStatus = (s: StatusFilter) => { setStatusFilter(s); setCurrentPage(1); };
 
     return (
         <div className="flex flex-col gap-8">
@@ -214,7 +51,9 @@ export default function BlogPage() {
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
                     <h1 className="text-3xl md:text-4xl font-black tracking-tight text-foreground uppercase">Blog Posts</h1>
-                    <p className="text-muted-foreground text-sm mt-1">{filtered.length} posts found</p>
+                    <p className="text-muted-foreground text-sm mt-1">
+                        {isLoading ? "Loading..." : `${filtered.length} post${filtered.length !== 1 ? "s" : ""} found`}
+                    </p>
                 </div>
                 <Link
                     href="/dashboard/blog/new"
@@ -293,20 +132,44 @@ export default function BlogPage() {
             </div>
 
             {/* Content */}
-            {paginated.length === 0 ? (
+            {isLoading ? (
                 <div className="flex flex-col items-center justify-center py-24 text-muted-foreground gap-3">
-                    <Search size={40} className="opacity-30" />
-                    <p className="text-lg font-medium">No posts found</p>
-                    <p className="text-sm">Try adjusting your search or filters</p>
+                    <Loader2 size={36} className="animate-spin opacity-40" />
+                    <p className="text-sm">Loading posts...</p>
+                </div>
+            ) : isError ? (
+                <div className="flex flex-col items-center justify-center py-24 text-muted-foreground gap-3">
+                    <p className="text-lg font-medium text-destructive">Failed to load posts</p>
+                    <p className="text-sm">Please try refreshing the page</p>
+                </div>
+            ) : paginated.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-24 text-muted-foreground gap-3">
+                    <FileText size={40} className="opacity-30" />
+                    <p className="text-lg font-medium">
+                        {posts.length === 0 ? "No posts yet" : "No posts found"}
+                    </p>
+                    <p className="text-sm">
+                        {posts.length === 0
+                            ? "Create your first blog post to get started"
+                            : "Try adjusting your search or filters"}
+                    </p>
+                    {posts.length === 0 && (
+                        <Link
+                            href="/dashboard/blog/new"
+                            className="mt-2 inline-flex items-center gap-2 px-5 py-2.5 bg-primary text-primary-foreground rounded-full text-sm font-semibold hover:opacity-90 transition-opacity"
+                        >
+                            <Plus size={16} /> New Post
+                        </Link>
+                    )}
                 </div>
             ) : viewMode === "grid" ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
-                    {paginated.map((blog) => (
-                        <BlogCard key={blog.id} blog={blog} />
+                    {paginated.map((post) => (
+                        <BlogCard key={post.id} post={post} />
                     ))}
                 </div>
             ) : (
-                <BlogTable blogs={paginated} />
+                <BlogTable posts={paginated} />
             )}
 
             {/* Pagination */}
@@ -349,23 +212,29 @@ export default function BlogPage() {
 }
 
 // --- Blog Card Component ---
-function BlogCard({ blog }: { blog: typeof DUMMY_BLOGS[0] }) {
+function BlogCard({ post }: { post: BlogPost }) {
     return (
         <div className="bg-card rounded-[24px] border border-white/5 overflow-hidden group hover:border-white/15 transition-all duration-300 flex flex-col">
             {/* Image */}
-            <div className="relative h-44 overflow-hidden shrink-0">
-                <img
-                    src={blog.image}
-                    alt={blog.title}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                />
+            <div className="relative h-44 overflow-hidden shrink-0 bg-zinc-800">
+                {post.cover_image_url ? (
+                    <img
+                        src={post.cover_image_url}
+                        alt={post.title}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                    />
+                ) : (
+                    <div className="w-full h-full flex items-center justify-center text-muted-foreground/20">
+                        <FileText size={40} />
+                    </div>
+                )}
                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
                 <div className="absolute top-3 left-3 flex gap-2">
                     <span className={cn(
                         "px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider",
-                        blog.status === "published" ? "bg-primary text-primary-foreground" : "bg-zinc-700 text-zinc-300"
+                        post.status === "published" ? "bg-primary text-primary-foreground" : "bg-zinc-700 text-zinc-300"
                     )}>
-                        {blog.status}
+                        {post.status}
                     </span>
                 </div>
                 <div className="absolute top-3 right-3">
@@ -373,35 +242,38 @@ function BlogCard({ blog }: { blog: typeof DUMMY_BLOGS[0] }) {
                         <MoreHorizontal size={14} />
                     </button>
                 </div>
-                <div className="absolute bottom-3 left-3">
-                    <span className="px-2.5 py-1 rounded-full text-[10px] font-medium bg-black/50 backdrop-blur-sm text-white flex items-center gap-1">
-                        <Tag size={10} />
-                        {blog.category}
-                    </span>
-                </div>
+                {post.category && (
+                    <div className="absolute bottom-3 left-3">
+                        <span className="px-2.5 py-1 rounded-full text-[10px] font-medium bg-black/50 backdrop-blur-sm text-white flex items-center gap-1">
+                            <Tag size={10} />
+                            {post.category}
+                        </span>
+                    </div>
+                )}
             </div>
 
             {/* Content */}
             <div className="p-5 flex flex-col flex-1">
                 <h3 className="font-bold text-foreground text-sm leading-snug mb-2 line-clamp-2 group-hover:text-primary transition-colors">
-                    {blog.title}
+                    {post.title}
                 </h3>
                 <p className="text-muted-foreground text-xs leading-relaxed line-clamp-2 mb-4 flex-1">
-                    {blog.excerpt}
+                    {post.excerpt || "No excerpt provided."}
                 </p>
 
                 {/* Footer */}
                 <div className="flex items-center justify-between pt-3 border-t border-white/5">
                     <div className="flex items-center gap-1.5">
                         <div className="w-6 h-6 rounded-full bg-zinc-700 flex items-center justify-center text-[10px] font-bold text-white">
-                            {blog.author.charAt(0)}
+                            A
                         </div>
-                        <span className="text-xs text-muted-foreground">{blog.author}</span>
+                        <span className="text-xs text-muted-foreground">Author</span>
                     </div>
                     <div className="flex items-center gap-3 text-xs text-muted-foreground">
-                        <span className="flex items-center gap-1"><Eye size={11} />{blog.views.toLocaleString()}</span>
-                        <span className="flex items-center gap-1"><Heart size={11} />{blog.likes}</span>
-                        <span className="flex items-center gap-1"><Calendar size={11} />{new Date(blog.date).toLocaleDateString("en-US", { month: "short", day: "numeric" })}</span>
+                        <span className="flex items-center gap-1">
+                            <Calendar size={11} />
+                            {new Date(post.created_at).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
+                        </span>
                     </div>
                 </div>
             </div>
@@ -410,7 +282,7 @@ function BlogCard({ blog }: { blog: typeof DUMMY_BLOGS[0] }) {
 }
 
 // --- Blog Table Component ---
-function BlogTable({ blogs }: { blogs: typeof DUMMY_BLOGS }) {
+function BlogTable({ posts }: { posts: BlogPost[] }) {
     return (
         <div className="bg-card rounded-[24px] border border-white/5 overflow-hidden">
             <table className="w-full text-sm">
@@ -418,53 +290,58 @@ function BlogTable({ blogs }: { blogs: typeof DUMMY_BLOGS }) {
                     <tr className="border-b border-white/5">
                         <th className="text-left px-6 py-4 text-xs font-semibold text-muted-foreground uppercase tracking-wider">Post</th>
                         <th className="text-left px-4 py-4 text-xs font-semibold text-muted-foreground uppercase tracking-wider hidden md:table-cell">Category</th>
-                        <th className="text-left px-4 py-4 text-xs font-semibold text-muted-foreground uppercase tracking-wider hidden lg:table-cell">Author</th>
-                        <th className="text-left px-4 py-4 text-xs font-semibold text-muted-foreground uppercase tracking-wider hidden lg:table-cell">Date</th>
-                        <th className="text-left px-4 py-4 text-xs font-semibold text-muted-foreground uppercase tracking-wider hidden md:table-cell">Stats</th>
+                        <th className="text-left px-4 py-4 text-xs font-semibold text-muted-foreground uppercase tracking-wider hidden lg:table-cell">Tags</th>
+                        <th className="text-left px-4 py-4 text-xs font-semibold text-muted-foreground uppercase tracking-wider hidden lg:table-cell">Created</th>
                         <th className="text-left px-4 py-4 text-xs font-semibold text-muted-foreground uppercase tracking-wider">Status</th>
                         <th className="px-4 py-4"></th>
                     </tr>
                 </thead>
                 <tbody>
-                    {blogs.map((blog, i) => (
-                        <tr key={blog.id} className={cn("border-b border-white/5 hover:bg-white/2 transition-colors", i === blogs.length - 1 && "border-b-0")}>
+                    {posts.map((post, i) => (
+                        <tr key={post.id} className={cn("border-b border-white/5 hover:bg-white/2 transition-colors", i === posts.length - 1 && "border-b-0")}>
                             <td className="px-6 py-4">
                                 <div className="flex items-center gap-3">
-                                    <img src={blog.image} alt={blog.title} className="w-10 h-10 rounded-xl object-cover shrink-0" />
+                                    {post.cover_image_url ? (
+                                        <img src={post.cover_image_url} alt={post.title} className="w-10 h-10 rounded-xl object-cover shrink-0" />
+                                    ) : (
+                                        <div className="w-10 h-10 rounded-xl bg-zinc-800 flex items-center justify-center text-muted-foreground/30 shrink-0">
+                                            <FileText size={16} />
+                                        </div>
+                                    )}
                                     <div>
-                                        <p className="font-semibold text-foreground text-sm line-clamp-1">{blog.title}</p>
-                                        <p className="text-muted-foreground text-xs line-clamp-1 hidden sm:block">{blog.excerpt}</p>
+                                        <p className="font-semibold text-foreground text-sm line-clamp-1">{post.title}</p>
+                                        <p className="text-muted-foreground text-xs line-clamp-1 hidden sm:block">{post.excerpt}</p>
                                     </div>
                                 </div>
                             </td>
                             <td className="px-4 py-4 hidden md:table-cell">
-                                <span className="px-2.5 py-1 rounded-full text-xs bg-background/50 border border-white/10 text-muted-foreground whitespace-nowrap">
-                                    {blog.category}
-                                </span>
+                                {post.category && (
+                                    <span className="px-2.5 py-1 rounded-full text-xs bg-background/50 border border-white/10 text-muted-foreground whitespace-nowrap">
+                                        {post.category}
+                                    </span>
+                                )}
                             </td>
                             <td className="px-4 py-4 hidden lg:table-cell">
-                                <div className="flex items-center gap-2">
-                                    <div className="w-6 h-6 rounded-full bg-zinc-700 flex items-center justify-center text-[10px] font-bold text-white shrink-0">
-                                        {blog.author.charAt(0)}
-                                    </div>
-                                    <span className="text-muted-foreground text-xs whitespace-nowrap">{blog.author}</span>
+                                <div className="flex flex-wrap gap-1">
+                                    {post.tags?.slice(0, 2).map((tag) => (
+                                        <span key={tag} className="px-2 py-0.5 rounded-full text-[10px] bg-background/50 border border-white/10 text-muted-foreground">
+                                            {tag}
+                                        </span>
+                                    ))}
+                                    {(post.tags?.length ?? 0) > 2 && (
+                                        <span className="text-[10px] text-muted-foreground">+{post.tags.length - 2}</span>
+                                    )}
                                 </div>
                             </td>
                             <td className="px-4 py-4 hidden lg:table-cell text-muted-foreground text-xs whitespace-nowrap">
-                                {new Date(blog.date).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" })}
-                            </td>
-                            <td className="px-4 py-4 hidden md:table-cell">
-                                <div className="flex items-center gap-3 text-xs text-muted-foreground">
-                                    <span className="flex items-center gap-1"><Eye size={11} />{blog.views.toLocaleString()}</span>
-                                    <span className="flex items-center gap-1"><Heart size={11} />{blog.likes}</span>
-                                </div>
+                                {new Date(post.created_at).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" })}
                             </td>
                             <td className="px-4 py-4">
                                 <span className={cn(
                                     "px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider whitespace-nowrap",
-                                    blog.status === "published" ? "bg-primary/20 text-primary" : "bg-zinc-700/50 text-zinc-400"
+                                    post.status === "published" ? "bg-primary/20 text-primary" : "bg-zinc-700/50 text-zinc-400"
                                 )}>
-                                    {blog.status}
+                                    {post.status}
                                 </span>
                             </td>
                             <td className="px-4 py-4">
