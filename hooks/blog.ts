@@ -1,21 +1,13 @@
 import { createClient } from "@/lib/supabase/client";
-import { CreateBlogPostPayload, BlogPost } from "@/types/blogs.types";
+import { 
+        CreateBlogPostPayload, 
+        UpdateBlogPostPayload, 
+        BlogPost,
+        FetchBlogPostsParams,
+        PaginatedBlogResponse
+        } from "@/types/blogs.types";
 
-export interface FetchBlogPostsParams {
-    status?: "draft" | "published";
-    search?: string;
-    category?: string;
-    page?: number;
-    limit?: number;
-}
 
-export interface PaginatedBlogResponse {
-    posts: BlogPost[];
-    total: number;
-    page: number;
-    limit: number;
-    totalPages: number;
-}
 
 /**
  * Fetch paginated blog posts directly from Supabase (no API route needed).
@@ -64,6 +56,58 @@ export async function fetchBlogPosts(params?: FetchBlogPostsParams): Promise<Pag
         limit,
         totalPages: Math.ceil(total / limit),
     };
+}
+
+/**
+ * Fetch a single blog post by ID directly from Supabase.
+ */
+export async function getBlogPost(id: string): Promise<BlogPost> {
+    const supabase = createClient();
+
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    if (authError || !user) throw new Error("Unauthorized");
+
+    const { data, error } = await supabase
+        .from("blog_posts")
+        .select("*")
+        .eq("id", id)
+        .eq("author_id", user.id)
+        .single();
+
+    if (error) throw new Error(error.message);
+    return data as BlogPost;
+}
+
+/**
+ * Update an existing blog post directly via Supabase.
+ */
+export async function updateBlogPost({ id, ...payload }: UpdateBlogPostPayload): Promise<BlogPost> {
+    const supabase = createClient();
+
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    if (authError || !user) throw new Error("Unauthorized");
+
+    if (!payload.title?.trim()) throw new Error("Title is required");
+
+    const { data, error } = await supabase
+        .from("blog_posts")
+        .update({
+            title: payload.title.trim(),
+            excerpt: payload.excerpt?.trim() ?? "",
+            content: payload.content ?? "",
+            cover_image_url: payload.cover_image_url ?? "",
+            category: payload.category ?? "",
+            tags: payload.tags ?? [],
+            status: payload.status ?? "draft",
+            publish_date: payload.publish_date ?? null,
+        })
+        .eq("id", id)
+        .eq("author_id", user.id)
+        .select()
+        .single();
+
+    if (error) throw new Error(error.message);
+    return data as BlogPost;
 }
 
 /**

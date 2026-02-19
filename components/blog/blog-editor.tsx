@@ -32,16 +32,19 @@ import { forwardRef, useImperativeHandle } from "react";
 
 export interface BlogEditorHandle {
     getHTML: () => string;
+    setContent: (html: string) => void;
 }
 
 interface BlogEditorProps {
     onWordCountChange?: (count: number) => void;
+    initialContent?: string;
 }
 
 export const BlogEditor = forwardRef<BlogEditorHandle, BlogEditorProps>(
-    function BlogEditor({ onWordCountChange }, ref) {
+    function BlogEditor({ onWordCountChange, initialContent }, ref) {
         const editor = useEditor({
             immediatelyRender: false,
+            content: initialContent ?? "",
             extensions: [
                 Document,
                 Text,
@@ -75,9 +78,10 @@ export const BlogEditor = forwardRef<BlogEditorHandle, BlogEditorProps>(
             },
         });
 
-        // Expose getHTML to parent via ref
+        // Expose getHTML and setContent to parent via ref
         useImperativeHandle(ref, () => ({
             getHTML: () => editor?.getHTML() ?? "",
+            setContent: (html: string) => editor?.commands.setContent(html),
         }));
 
         if (!editor) return null;

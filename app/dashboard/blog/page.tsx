@@ -234,7 +234,10 @@ export default function BlogPage() {
 // --- Blog Card ---
 function BlogCard({ post }: { post: BlogPost }) {
     return (
-        <div className="bg-card rounded-[24px] border border-white/5 overflow-hidden group hover:border-white/15 transition-all duration-300 flex flex-col">
+        <Link
+            href={`/dashboard/blog/${post.id}`}
+            className="bg-card rounded-[24px] border border-white/5 overflow-hidden group hover:border-white/15 transition-all duration-300 flex flex-col"
+        >
             <div className="relative h-44 overflow-hidden shrink-0 bg-zinc-800">
                 {post.cover_image_url ? (
                     <img src={post.cover_image_url} alt={post.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
@@ -284,7 +287,7 @@ function BlogCard({ post }: { post: BlogPost }) {
                     </span>
                 </div>
             </div>
-        </div>
+        </Link>
     );
 }
 
@@ -305,7 +308,11 @@ function BlogTable({ posts }: { posts: BlogPost[] }) {
                 </thead>
                 <tbody>
                     {posts.map((post, i) => (
-                        <tr key={post.id} className={cn("border-b border-white/5 hover:bg-white/2 transition-colors", i === posts.length - 1 && "border-b-0")}>
+                        <tr
+                            key={post.id}
+                            onClick={() => window.location.href = `/dashboard/blog/${post.id}`}
+                            className={cn("border-b border-white/5 hover:bg-white/2 transition-colors cursor-pointer", i === posts.length - 1 && "border-b-0")}
+                        >
                             <td className="px-6 py-4">
                                 <div className="flex items-center gap-3">
                                     {post.cover_image_url ? (
