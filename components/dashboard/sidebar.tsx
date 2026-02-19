@@ -3,49 +3,54 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
-import { Heart, Calendar, Diamond, Settings, Plus, X, Menu, BookOpen } from 'lucide-react';
-import { useState } from "react";
+import { Heart, Calendar, Diamond, Settings, Plus, X, Menu, BookOpen, Search } from 'lucide-react';
+import { Suspense, useState } from "react";
 import { Button } from "@/components/ui/button";
+import { ThemeSwitcher } from "@/components/theme-switcher";
 
 const sidebarItems = [
-    {
-        title: "Dashboard",
-        href: "/dashboard",
-        icon: Heart,
-    },
-    {
-        title: "Blog",
-        href: "/dashboard/blog",
-        icon: BookOpen,
-    },
-    {
-        title: "Calendar",
-        href: "/dashboard/calendar",
-        icon: Calendar,
-    },
-    {
-        title: "Diamond",
-        href: "/dashboard/diamond",
-        icon: Diamond,
-    },
-    {
-        title: "Settings",
-        href: "/dashboard/settings",
-        icon: Settings,
-    },
+    { title: "Dashboard", href: "/dashboard", icon: Heart },
+    { title: "Blog", href: "/dashboard/blog", icon: BookOpen },
+    { title: "Calendar", href: "/dashboard/calendar", icon: Calendar },
+    { title: "Diamond", href: "/dashboard/diamond", icon: Diamond },
+    { title: "Settings", href: "/dashboard/settings", icon: Settings },
 ];
 
-export function Sidebar() {
+/** Isolated so usePathname() is always inside a Suspense boundary */
+function SidebarNav() {
     const pathname = usePathname();
-    const [isOpen, setIsOpen] = useState(false);
+    return (
+        <nav className="flex flex-col gap-6 flex-1 items-center justify-center">
+            {sidebarItems.map((item) => {
+                const isActive =
+                    pathname === item.href || pathname.startsWith(item.href + "/");
+                return (
+                    <Link
+                        key={item.href}
+                        href={item.href}
+                        title={item.title}
+                        className={cn(
+                            "w-12 h-12 rounded-full flex items-center justify-center transition-all duration-300",
+                            isActive
+                                ? "bg-card text-foreground border border-white/10 shadow-[0_0_15px_rgba(255,255,255,0.05)]"
+                                : "text-muted-foreground hover:text-foreground hover:bg-white/5"
+                        )}
+                    >
+                        <item.icon size={20} />
+                    </Link>
+                );
+            })}
+        </nav>
+    );
+}
 
-    // Function to toggle sidebar logic if we were passing it down, 
-    // but for now keeping it self-contained or compatible with layout
+export function Sidebar() {
+    const [isOpen, setIsOpen] = useState(false);
     const toggle = () => setIsOpen(!isOpen);
 
     return (
         <>
-            {/* Mobile Toggle Button (Visible only on mobile when closed) */}
+            {/* Mobile Toggle Button */}
             <div className="fixed top-4 left-4 z-50 md:hidden">
                 <Button variant="ghost" size="icon" onClick={toggle}>
                     <Menu />
@@ -63,45 +68,56 @@ export function Sidebar() {
 
             <aside
                 className={cn(
-                    "fixed md:static inset-y-0 left-0 z-50 flex flex-col items-center justify-between py-8 px-4 w-24 bg-card md:bg-transparent border-r md:border-r-0 border-white/5 transition-transform duration-300 ease-in-out",
+                    "fixed md:static inset-y-0 left-0 z-50 flex flex-col items-center py-8 px-4 w-24 bg-card md:bg-transparent border-r md:border-r-0 border-white/5 transition-transform duration-300 ease-in-out gap-6",
                     isOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"
                 )}
             >
                 {/* Logo */}
-                <div className="w-12 h-12 bg-foreground rounded-full flex items-center justify-center mb-8 shrink-0">
+                <div className="w-12 h-12 bg-foreground rounded-full flex items-center justify-center shrink-0">
                     <span className="text-background font-black text-xl">N</span>
                 </div>
 
-                <nav className="flex flex-col gap-6 flex-1 items-center justify-center">
-                    {sidebarItems.map((item) => {
-                        const isActive = pathname === item.href;
-                        return (
-                            <Link
-                                key={item.href}
-                                href={item.href}
-                                className={cn(
-                                    "w-12 h-12 rounded-full flex items-center justify-center transition-all duration-300",
-                                    isActive
-                                        ? "bg-card text-foreground border border-white/10 shadow-[0_0_15px_rgba(255,255,255,0.05)] dark:shadow-[0_0_15px_rgba(255,255,255,0.05)]"
-                                        : "text-muted-foreground hover:text-foreground hover:bg-white/5"
-                                )}
-                            >
-                                <item.icon size={20} />
-                            </Link>
-                        );
-                    })}
-                </nav>
+                {/* Nav — wrapped in Suspense so usePathname() doesn't block prerender */}
+                <Suspense
+                    fallback={
+                        <nav className="flex flex-col gap-6 flex-1 items-center justify-center">
+                            {sidebarItems.map((item) => (
+                                <div key={item.href} className="w-12 h-12 rounded-full bg-white/5 animate-pulse" />
+                            ))}
+                        </nav>
+                    }
+                >
+                    <SidebarNav />
+                </Suspense>
 
-                {/* Bottom Action */}
-                <button className="w-12 h-12 bg-card rounded-full flex items-center justify-center hover:bg-white/10 transition-colors mt-auto group shrink-0 border border-white/5">
-                    <Plus size={24} className="text-muted-foreground group-hover:text-foreground transition-colors" />
-                </button>
+                {/* Bottom utilities (from old Header) */}
+                <div className="flex flex-col items-center gap-4 mt-auto shrink-0">
+                    {/* Theme switcher */}
+                    <ThemeSwitcher />
+
+                    {/* Search */}
+                    <button
+                        title="Search"
+                        className="w-10 h-10 rounded-full bg-card flex items-center justify-center hover:bg-white/5 transition-colors border border-white/5"
+                    >
+                        <Search size={18} className="text-muted-foreground" />
+                    </button>
+
+                    {/* User avatar */}
+                    <div className="relative">
+                        <div className="w-10 h-10 rounded-full bg-zinc-800 border border-white/10 flex items-center justify-center overflow-hidden">
+                            <span className="text-xs font-bold">AD</span>
+                        </div>
+                        <div className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full text-[10px] flex items-center justify-center border border-black font-bold text-white">
+                            2
+                        </div>
+                    </div>
+                </div>
 
                 {/* Close button for mobile */}
-                <button className="md:hidden mt-4 text-muted-foreground" onClick={toggle}>
+                <button className="md:hidden text-muted-foreground shrink-0" onClick={toggle}>
                     <X size={24} />
                 </button>
-
             </aside>
         </>
     );
