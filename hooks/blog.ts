@@ -1,47 +1,99 @@
+import { createClient } from "@/lib/supabase/client";
 import { CreateBlogPostPayload, BlogPost } from "@/types/blogs.types";
-
-/**
- * Create a new blog post via the API route.
- */
-export async function createBlogPost(payload: CreateBlogPostPayload): Promise<BlogPost> {
-    const response = await fetch("/api/blog", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-    });
-
-    if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error ?? "Failed to create blog post");
-    }
-
-    const data = await response.json();
-    return data.post as BlogPost;
-}
 
 export interface FetchBlogPostsParams {
     status?: "draft" | "published";
     search?: string;
+    category?: string;
+    page?: number;
+    limit?: number;
+}
+
+export interface PaginatedBlogResponse {
+    posts: BlogPost[];
+    total: number;
+    page: number;
+    limit: number;
+    totalPages: number;
 }
 
 /**
- * Fetch blog posts for the current user.
+ * Fetch paginated blog posts directly from Supabase (no API route needed).
  */
-export async function fetchBlogPosts(params?: FetchBlogPostsParams): Promise<BlogPost[]> {
-    const searchParams = new URLSearchParams();
-    if (params?.status) searchParams.set("status", params.status);
-    if (params?.search) searchParams.set("search", params.search);
+export async function fetchBlogPosts(params?: FetchBlogPostsParams): Promise<PaginatedBlogResponse> {
+    const supabase = createClient();
 
-    const query = searchParams.toString() ? `?${searchParams.toString()}` : "";
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    if (authError || !user) throw new Error("Unauthorized");
 
-    const response = await fetch(`/api/blog${query}`);
+    const page = Math.max(1, params?.page ?? 1);
+    const limit = Math.min(50, Math.max(1, params?.limit ?? 6));
+    const from = (page - 1) * limit;
+    const to = from + limit - 1;
 
-    if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error ?? "Failed to fetch blog posts");
+    let query = supabase
+        .from("blog_posts")
+        .select("*", { count: "exact" })
+        .eq("author_id", user.id)
+        .order("created_at", { ascending: false });
+
+    if (params?.status === "draft" || params?.status === "published") {
+        query = query.eq("status", params.status);
     }
 
-    const data = await response.json();
-    return data.posts as BlogPost[];
+    if (params?.category) {
+        query = query.eq("category", params.category);
+    }
+
+    if (params?.search) {
+        query = query.or(`title.ilike.%${params.search}%,excerpt.ilike.%${params.search}%`);
+    }
+
+    // Apply pagination last so count reflects filtered results
+    query = query.range(from, to);
+
+    const { data, error, count } = await query;
+
+    if (error) throw new Error(error.message);
+
+    const total = count ?? 0;
+    return {
+        posts: (data ?? []) as BlogPost[],
+        total,
+        page,
+        limit,
+        totalPages: Math.ceil(total / limit),
+    };
 }
 
+/**
+ * Create a new blog post directly via Supabase (no API route needed).
+ */
+export async function createBlogPost(payload: CreateBlogPostPayload): Promise<BlogPost> {
+    const supabase = createClient();
+
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    if (authError || !user) throw new Error("Unauthorized");
+
+    if (!payload.title?.trim()) throw new Error("Title is required");
+
+    const { data, error } = await supabase
+        .from("blog_posts")
+        .insert({
+            title: payload.title.trim(),
+            excerpt: payload.excerpt?.trim() ?? "",
+            content: payload.content ?? "",
+            cover_image_url: payload.cover_image_url ?? "",
+            category: payload.category ?? "",
+            tags: payload.tags ?? [],
+            status: payload.status ?? "draft",
+            publish_date: payload.publish_date ?? null,
+            author_id: user.id,
+        })
+        .select()
+        .single();
+
+    if (error) throw new Error(error.message);
+
+    return data as BlogPost;
+}

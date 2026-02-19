@@ -1,14 +1,14 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Search, LayoutGrid, List, Plus, Calendar, Tag, MoreHorizontal, Loader2, FileText } from "lucide-react";
+import { Search, LayoutGrid, List, Plus, Calendar, Tag, MoreHorizontal, Loader2, FileText, ChevronLeft, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
 import { fetchBlogPosts } from "@/hooks/blog";
 import { BlogPost } from "@/types/blogs.types";
 
-const ITEMS_PER_PAGE = 6;
+const LIMIT = 6;
 const CATEGORIES = ["All", "Travel Tips", "Destinations", "Food & Culture", "Budget Travel", "Safety", "Luxury", "Family Travel", "Eco Travel", "Digital Nomad", "Cruises"];
 
 type ViewMode = "grid" | "table";
@@ -16,34 +16,41 @@ type StatusFilter = "all" | "published" | "draft";
 
 export default function BlogPage() {
     const [search, setSearch] = useState("");
+    const [debouncedSearch, setDebouncedSearch] = useState("");
     const [viewMode, setViewMode] = useState<ViewMode>("grid");
-    const [currentPage, setCurrentPage] = useState(1);
+    const [page, setPage] = useState(1);
     const [selectedCategory, setSelectedCategory] = useState("All");
     const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
 
-    const { data: posts = [], isLoading, isError } = useQuery({
-        queryKey: ["blog-posts"],
-        queryFn: () => fetchBlogPosts(),
+    // Debounce search input so we don't fire a request on every keystroke
+    const handleSearch = (val: string) => {
+        setSearch(val);
+        setPage(1);
+        clearTimeout((handleSearch as any)._timer);
+        (handleSearch as any)._timer = setTimeout(() => setDebouncedSearch(val), 400);
+    };
+
+    const handleCategory = (cat: string) => { setSelectedCategory(cat); setPage(1); };
+    const handleStatus = (s: StatusFilter) => { setStatusFilter(s); setPage(1); };
+
+    const { data, isLoading, isError } = useQuery({
+        queryKey: ["blog-posts", { page, limit: LIMIT, status: statusFilter, search: debouncedSearch, category: selectedCategory }],
+        queryFn: () => fetchBlogPosts({
+            page,
+            limit: LIMIT,
+            status: statusFilter === "all" ? undefined : statusFilter,
+            search: debouncedSearch || undefined,
+            category: selectedCategory === "All" ? undefined : selectedCategory,
+        }),
+        placeholderData: (prev) => prev,
     });
 
-    // Client-side filtering (search + category + status)
-    const filtered = useMemo(() => {
-        return posts.filter((post) => {
-            const matchesSearch =
-                post.title.toLowerCase().includes(search.toLowerCase()) ||
-                post.excerpt.toLowerCase().includes(search.toLowerCase());
-            const matchesCategory = selectedCategory === "All" || post.category === selectedCategory;
-            const matchesStatus = statusFilter === "all" || post.status === statusFilter;
-            return matchesSearch && matchesCategory && matchesStatus;
-        });
-    }, [posts, search, selectedCategory, statusFilter]);
+    const posts = data?.posts ?? [];
+    const total = data?.total ?? 0;
+    const totalPages = data?.totalPages ?? 1;
 
-    const totalPages = Math.ceil(filtered.length / ITEMS_PER_PAGE);
-    const paginated = filtered.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE);
-
-    const handleSearch = (val: string) => { setSearch(val); setCurrentPage(1); };
-    const handleCategory = (cat: string) => { setSelectedCategory(cat); setCurrentPage(1); };
-    const handleStatus = (s: StatusFilter) => { setStatusFilter(s); setCurrentPage(1); };
+    // All filtering is now server-side
+    const displayed = posts;
 
     return (
         <div className="flex flex-col gap-8">
@@ -52,7 +59,7 @@ export default function BlogPage() {
                 <div>
                     <h1 className="text-3xl md:text-4xl font-black tracking-tight text-foreground uppercase">Blog Posts</h1>
                     <p className="text-muted-foreground text-sm mt-1">
-                        {isLoading ? "Loading..." : `${filtered.length} post${filtered.length !== 1 ? "s" : ""} found`}
+                        {isLoading ? "Loading..." : `${total} post${total !== 1 ? "s" : ""} total`}
                     </p>
                 </div>
                 <Link
@@ -66,7 +73,6 @@ export default function BlogPage() {
 
             {/* Filters & Controls */}
             <div className="bg-card rounded-[24px] p-4 border border-white/5 flex flex-col gap-4">
-                {/* Search + View Toggle */}
                 <div className="flex flex-col sm:flex-row gap-3">
                     <div className="relative flex-1">
                         <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground" />
@@ -142,18 +148,14 @@ export default function BlogPage() {
                     <p className="text-lg font-medium text-destructive">Failed to load posts</p>
                     <p className="text-sm">Please try refreshing the page</p>
                 </div>
-            ) : paginated.length === 0 ? (
+            ) : displayed.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-24 text-muted-foreground gap-3">
                     <FileText size={40} className="opacity-30" />
-                    <p className="text-lg font-medium">
-                        {posts.length === 0 ? "No posts yet" : "No posts found"}
-                    </p>
+                    <p className="text-lg font-medium">{total === 0 ? "No posts yet" : "No posts found"}</p>
                     <p className="text-sm">
-                        {posts.length === 0
-                            ? "Create your first blog post to get started"
-                            : "Try adjusting your search or filters"}
+                        {total === 0 ? "Create your first blog post to get started" : "Try adjusting your search or filters"}
                     </p>
-                    {posts.length === 0 && (
+                    {total === 0 && (
                         <Link
                             href="/dashboard/blog/new"
                             className="mt-2 inline-flex items-center gap-2 px-5 py-2.5 bg-primary text-primary-foreground rounded-full text-sm font-semibold hover:opacity-90 transition-opacity"
@@ -164,72 +166,85 @@ export default function BlogPage() {
                 </div>
             ) : viewMode === "grid" ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
-                    {paginated.map((post) => (
-                        <BlogCard key={post.id} post={post} />
-                    ))}
+                    {displayed.map((post) => <BlogCard key={post.id} post={post} />)}
                 </div>
             ) : (
-                <BlogTable posts={paginated} />
+                <BlogTable posts={displayed} />
             )}
 
             {/* Pagination */}
             {totalPages > 1 && (
-                <div className="flex items-center justify-center gap-2 mt-2">
-                    <button
-                        onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                        disabled={currentPage === 1}
-                        className="px-4 py-2 rounded-full text-sm border border-white/10 text-muted-foreground hover:text-foreground hover:border-white/30 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
-                    >
-                        Previous
-                    </button>
-                    <div className="flex gap-1">
-                        {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-                            <button
-                                key={page}
-                                onClick={() => setCurrentPage(page)}
-                                className={cn(
-                                    "w-9 h-9 rounded-full text-sm font-medium transition-all",
-                                    currentPage === page
-                                        ? "bg-primary text-primary-foreground"
-                                        : "text-muted-foreground hover:text-foreground hover:bg-white/5"
+                <div className="flex items-center justify-between gap-4 mt-2">
+                    <p className="text-xs text-muted-foreground">
+                        Page {page} of {totalPages} · {total} posts
+                    </p>
+                    <div className="flex items-center gap-2">
+                        <button
+                            onClick={() => setPage((p) => Math.max(1, p - 1))}
+                            disabled={page === 1 || isLoading}
+                            className="w-9 h-9 rounded-full border border-white/10 flex items-center justify-center text-muted-foreground hover:text-foreground hover:border-white/30 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+                        >
+                            <ChevronLeft size={16} />
+                        </button>
+
+                        {/* Page number buttons — show up to 5 around current */}
+                        <div className="flex gap-1">
+                            {Array.from({ length: totalPages }, (_, i) => i + 1)
+                                .filter((p) => p === 1 || p === totalPages || Math.abs(p - page) <= 1)
+                                .reduce<(number | "...")[]>((acc, p, idx, arr) => {
+                                    if (idx > 0 && p - (arr[idx - 1] as number) > 1) acc.push("...");
+                                    acc.push(p);
+                                    return acc;
+                                }, [])
+                                .map((item, idx) =>
+                                    item === "..." ? (
+                                        <span key={`ellipsis-${idx}`} className="w-9 h-9 flex items-center justify-center text-muted-foreground text-sm">…</span>
+                                    ) : (
+                                        <button
+                                            key={item}
+                                            onClick={() => setPage(item as number)}
+                                            disabled={isLoading}
+                                            className={cn(
+                                                "w-9 h-9 rounded-full text-sm font-medium transition-all",
+                                                page === item
+                                                    ? "bg-primary text-primary-foreground"
+                                                    : "text-muted-foreground hover:text-foreground hover:bg-white/5"
+                                            )}
+                                        >
+                                            {item}
+                                        </button>
+                                    )
                                 )}
-                            >
-                                {page}
-                            </button>
-                        ))}
+                        </div>
+
+                        <button
+                            onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                            disabled={page === totalPages || isLoading}
+                            className="w-9 h-9 rounded-full border border-white/10 flex items-center justify-center text-muted-foreground hover:text-foreground hover:border-white/30 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+                        >
+                            <ChevronRight size={16} />
+                        </button>
                     </div>
-                    <button
-                        onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-                        disabled={currentPage === totalPages}
-                        className="px-4 py-2 rounded-full text-sm border border-white/10 text-muted-foreground hover:text-foreground hover:border-white/30 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
-                    >
-                        Next
-                    </button>
                 </div>
             )}
         </div>
     );
 }
 
-// --- Blog Card Component ---
+// --- Blog Card ---
 function BlogCard({ post }: { post: BlogPost }) {
     return (
         <div className="bg-card rounded-[24px] border border-white/5 overflow-hidden group hover:border-white/15 transition-all duration-300 flex flex-col">
-            {/* Image */}
             <div className="relative h-44 overflow-hidden shrink-0 bg-zinc-800">
                 {post.cover_image_url ? (
-                    <img
-                        src={post.cover_image_url}
-                        alt={post.title}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                    />
+                    <img src={post.cover_image_url} alt={post.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
                 ) : (
                     <div className="w-full h-full flex items-center justify-center text-muted-foreground/20">
                         <FileText size={40} />
                     </div>
                 )}
                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-                <div className="absolute top-3 left-3 flex gap-2">
+                <div className="absolute top-3 left-3">
                     <span className={cn(
                         "px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider",
                         post.status === "published" ? "bg-primary text-primary-foreground" : "bg-zinc-700 text-zinc-300"
@@ -245,14 +260,12 @@ function BlogCard({ post }: { post: BlogPost }) {
                 {post.category && (
                     <div className="absolute bottom-3 left-3">
                         <span className="px-2.5 py-1 rounded-full text-[10px] font-medium bg-black/50 backdrop-blur-sm text-white flex items-center gap-1">
-                            <Tag size={10} />
-                            {post.category}
+                            <Tag size={10} /> {post.category}
                         </span>
                     </div>
                 )}
             </div>
 
-            {/* Content */}
             <div className="p-5 flex flex-col flex-1">
                 <h3 className="font-bold text-foreground text-sm leading-snug mb-2 line-clamp-2 group-hover:text-primary transition-colors">
                     {post.title}
@@ -260,28 +273,22 @@ function BlogCard({ post }: { post: BlogPost }) {
                 <p className="text-muted-foreground text-xs leading-relaxed line-clamp-2 mb-4 flex-1">
                     {post.excerpt || "No excerpt provided."}
                 </p>
-
-                {/* Footer */}
                 <div className="flex items-center justify-between pt-3 border-t border-white/5">
                     <div className="flex items-center gap-1.5">
-                        <div className="w-6 h-6 rounded-full bg-zinc-700 flex items-center justify-center text-[10px] font-bold text-white">
-                            A
-                        </div>
+                        <div className="w-6 h-6 rounded-full bg-zinc-700 flex items-center justify-center text-[10px] font-bold text-white">A</div>
                         <span className="text-xs text-muted-foreground">Author</span>
                     </div>
-                    <div className="flex items-center gap-3 text-xs text-muted-foreground">
-                        <span className="flex items-center gap-1">
-                            <Calendar size={11} />
-                            {new Date(post.created_at).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
-                        </span>
-                    </div>
+                    <span className="flex items-center gap-1 text-xs text-muted-foreground">
+                        <Calendar size={11} />
+                        {new Date(post.created_at).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
+                    </span>
                 </div>
             </div>
         </div>
     );
 }
 
-// --- Blog Table Component ---
+// --- Blog Table ---
 function BlogTable({ posts }: { posts: BlogPost[] }) {
     return (
         <div className="bg-card rounded-[24px] border border-white/5 overflow-hidden">
@@ -324,9 +331,7 @@ function BlogTable({ posts }: { posts: BlogPost[] }) {
                             <td className="px-4 py-4 hidden lg:table-cell">
                                 <div className="flex flex-wrap gap-1">
                                     {post.tags?.slice(0, 2).map((tag) => (
-                                        <span key={tag} className="px-2 py-0.5 rounded-full text-[10px] bg-background/50 border border-white/10 text-muted-foreground">
-                                            {tag}
-                                        </span>
+                                        <span key={tag} className="px-2 py-0.5 rounded-full text-[10px] bg-background/50 border border-white/10 text-muted-foreground">{tag}</span>
                                     ))}
                                     {(post.tags?.length ?? 0) > 2 && (
                                         <span className="text-[10px] text-muted-foreground">+{post.tags.length - 2}</span>
