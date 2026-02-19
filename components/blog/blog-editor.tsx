@@ -89,7 +89,7 @@ export const BlogEditor = forwardRef<BlogEditorHandle, BlogEditorProps>(
         return (
             <RichTextProvider editor={editor}>
                 {/* Toolbar */}
-                <div className="flex items-center gap-1 flex-wrap px-4 py-3 border-b border-white/5 shrink-0">
+                <div id="blog-editor-toolbar" className="flex items-center gap-1 flex-wrap px-4 py-3 border-b border-border shrink-0">
                     <ToolbarGroup>
                         <RichTextUndo />
                         <RichTextRedo />
@@ -131,7 +131,7 @@ export const BlogEditor = forwardRef<BlogEditorHandle, BlogEditorProps>(
                 <div className="flex-1 overflow-y-auto p-6">
                     <EditorContent
                         editor={editor}
-                        className="prose prose-invert max-w-none min-h-[300px] focus:outline-none [&_.tiptap]:outline-none [&_.tiptap]:min-h-[300px]"
+                        className="prose dark:prose-invert max-w-none min-h-[300px] focus:outline-none [&_.tiptap]:outline-none [&_.tiptap]:min-h-[300px] [&_.tiptap]:bg-transparent [&_.tiptap]:text-foreground [&_.ProseMirror]:bg-transparent [&_.ProseMirror]:text-foreground"
                     />
                 </div>
             </RichTextProvider>
@@ -144,5 +144,5 @@ function ToolbarGroup({ children }: { children: React.ReactNode }) {
 }
 
 function Divider() {
-    return <div className="w-px h-5 bg-white/10 mx-1" />;
+    return <div className="w-px h-5 bg-border mx-1" />;
 }

@@ -192,3 +192,29 @@
 ::-webkit-scrollbar {
   display: none;
 }
+
+/* ── BLOG EDITOR OVERRIDES ────────────────────────────────── */
+#blog-editor-toolbar button {
+  background-color: transparent !important;
+  color: var(--foreground) !important;
+  border-radius: var(--radius);
+}
+
+#blog-editor-toolbar button:hover {
+  background-color: var(--muted) !important;
+  color: var(--foreground) !important;
+}
+
+/* Force transparent background on editor containers */
+.reactjs-tiptap-editor,
+.reactjs-tiptap-editor .ProseMirror,
+.tiptap,
+.ProseMirror {
+  background-color: transparent !important;
+  color: var(--foreground) !important;
+}
+
+/* Ensure placeholder text is visible in dark mode */
+.ProseMirror p.is-editor-empty:first-child::before {
+  color: var(--muted-foreground) !important;
+}

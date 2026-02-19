@@ -72,7 +72,7 @@ export default function BlogPage() {
             </div>
 
             {/* Filters & Controls */}
-            <div className="bg-card rounded-[24px] p-4 border border-white/5 flex flex-col gap-4">
+            <div className="bg-card rounded-[24px] p-4 border border-border flex flex-col gap-4">
                 <div className="flex flex-col sm:flex-row gap-3">
                     <div className="relative flex-1">
                         <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground" />
@@ -81,12 +81,12 @@ export default function BlogPage() {
                             placeholder="Search posts..."
                             value={search}
                             onChange={(e) => handleSearch(e.target.value)}
-                            className="w-full pl-10 pr-4 py-2.5 bg-background/50 border border-white/10 rounded-full text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary/50 transition-colors"
+                            className="w-full pl-10 pr-4 py-2.5 bg-background/50 border border-border rounded-full text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary/50 transition-colors"
                         />
                     </div>
                     <div className="flex items-center gap-2 shrink-0">
                         {/* Status Filter */}
-                        <div className="flex bg-background/50 rounded-full p-1 border border-white/10 text-xs">
+                        <div className="flex bg-background/50 rounded-full p-1 border border-border text-xs">
                             {(["all", "published", "draft"] as StatusFilter[]).map((s) => (
                                 <button
                                     key={s}
@@ -101,7 +101,7 @@ export default function BlogPage() {
                             ))}
                         </div>
                         {/* View Toggle */}
-                        <div className="flex bg-background/50 rounded-full p-1 border border-white/10">
+                        <div className="flex bg-background/50 rounded-full p-1 border border-border">
                             <button
                                 onClick={() => setViewMode("grid")}
                                 className={cn("w-8 h-8 rounded-full flex items-center justify-center transition-all", viewMode === "grid" ? "bg-card text-foreground shadow" : "text-muted-foreground hover:text-foreground")}
@@ -128,7 +128,7 @@ export default function BlogPage() {
                                 "px-3 py-1 rounded-full text-xs font-medium transition-all border",
                                 selectedCategory === cat
                                     ? "bg-primary text-primary-foreground border-primary"
-                                    : "bg-transparent text-muted-foreground border-white/10 hover:border-white/30 hover:text-foreground"
+                                    : "bg-transparent text-muted-foreground border-border hover:border-sidebar-foreground/30 hover:text-foreground"
                             )}
                         >
                             {cat}
@@ -182,7 +182,7 @@ export default function BlogPage() {
                         <button
                             onClick={() => setPage((p) => Math.max(1, p - 1))}
                             disabled={page === 1 || isLoading}
-                            className="w-9 h-9 rounded-full border border-white/10 flex items-center justify-center text-muted-foreground hover:text-foreground hover:border-white/30 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+                            className="w-9 h-9 rounded-full border border-border flex items-center justify-center text-muted-foreground hover:text-foreground hover:border-sidebar-foreground/30 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
                         >
                             <ChevronLeft size={16} />
                         </button>
@@ -208,7 +208,7 @@ export default function BlogPage() {
                                                 "w-9 h-9 rounded-full text-sm font-medium transition-all",
                                                 page === item
                                                     ? "bg-primary text-primary-foreground"
-                                                    : "text-muted-foreground hover:text-foreground hover:bg-white/5"
+                                                    : "text-muted-foreground hover:text-foreground hover:bg-muted"
                                             )}
                                         >
                                             {item}
@@ -220,7 +220,7 @@ export default function BlogPage() {
                         <button
                             onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
                             disabled={page === totalPages || isLoading}
-                            className="w-9 h-9 rounded-full border border-white/10 flex items-center justify-center text-muted-foreground hover:text-foreground hover:border-white/30 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+                            className="w-9 h-9 rounded-full border border-border flex items-center justify-center text-muted-foreground hover:text-foreground hover:border-sidebar-foreground/30 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
                         >
                             <ChevronRight size={16} />
                         </button>
@@ -236,7 +236,7 @@ function BlogCard({ post }: { post: BlogPost }) {
     return (
         <Link
             href={`/dashboard/blog/${post.id}`}
-            className="bg-card rounded-[24px] border border-white/5 overflow-hidden group hover:border-white/15 transition-all duration-300 flex flex-col"
+            className="bg-card rounded-[24px] border border-border overflow-hidden group hover:border-sidebar-foreground/30 transition-all duration-300 flex flex-col"
         >
             <div className="relative h-44 overflow-hidden shrink-0 bg-zinc-800">
                 {post.cover_image_url ? (
@@ -276,7 +276,7 @@ function BlogCard({ post }: { post: BlogPost }) {
                 <p className="text-muted-foreground text-xs leading-relaxed line-clamp-2 mb-4 flex-1">
                     {post.excerpt || "No excerpt provided."}
                 </p>
-                <div className="flex items-center justify-between pt-3 border-t border-white/5">
+                <div className="flex items-center justify-between pt-3 border-t border-border">
                     <div className="flex items-center gap-1.5">
                         <div className="w-6 h-6 rounded-full bg-zinc-700 flex items-center justify-center text-[10px] font-bold text-white">A</div>
                         <span className="text-xs text-muted-foreground">Author</span>
@@ -294,10 +294,10 @@ function BlogCard({ post }: { post: BlogPost }) {
 // --- Blog Table ---
 function BlogTable({ posts }: { posts: BlogPost[] }) {
     return (
-        <div className="bg-card rounded-[24px] border border-white/5 overflow-hidden">
+        <div className="bg-card rounded-[24px] border border-border overflow-hidden">
             <table className="w-full text-sm">
                 <thead>
-                    <tr className="border-b border-white/5">
+                    <tr className="border-b border-border">
                         <th className="text-left px-6 py-4 text-xs font-semibold text-muted-foreground uppercase tracking-wider">Post</th>
                         <th className="text-left px-4 py-4 text-xs font-semibold text-muted-foreground uppercase tracking-wider hidden md:table-cell">Category</th>
                         <th className="text-left px-4 py-4 text-xs font-semibold text-muted-foreground uppercase tracking-wider hidden lg:table-cell">Tags</th>
@@ -311,7 +311,7 @@ function BlogTable({ posts }: { posts: BlogPost[] }) {
                         <tr
                             key={post.id}
                             onClick={() => window.location.href = `/dashboard/blog/${post.id}`}
-                            className={cn("border-b border-white/5 hover:bg-white/2 transition-colors cursor-pointer", i === posts.length - 1 && "border-b-0")}
+                            className={cn("border-b border-border hover:bg-muted/50 transition-colors cursor-pointer", i === posts.length - 1 && "border-b-0")}
                         >
                             <td className="px-6 py-4">
                                 <div className="flex items-center gap-3">
@@ -330,7 +330,7 @@ function BlogTable({ posts }: { posts: BlogPost[] }) {
                             </td>
                             <td className="px-4 py-4 hidden md:table-cell">
                                 {post.category && (
-                                    <span className="px-2.5 py-1 rounded-full text-xs bg-background/50 border border-white/10 text-muted-foreground whitespace-nowrap">
+                                    <span className="px-2.5 py-1 rounded-full text-xs bg-background/50 border border-border text-muted-foreground whitespace-nowrap">
                                         {post.category}
                                     </span>
                                 )}
@@ -338,7 +338,7 @@ function BlogTable({ posts }: { posts: BlogPost[] }) {
                             <td className="px-4 py-4 hidden lg:table-cell">
                                 <div className="flex flex-wrap gap-1">
                                     {post.tags?.slice(0, 2).map((tag) => (
-                                        <span key={tag} className="px-2 py-0.5 rounded-full text-[10px] bg-background/50 border border-white/10 text-muted-foreground">{tag}</span>
+                                        <span key={tag} className="px-2 py-0.5 rounded-full text-[10px] bg-background/50 border border-border text-muted-foreground">{tag}</span>
                                     ))}
                                     {(post.tags?.length ?? 0) > 2 && (
                                         <span className="text-[10px] text-muted-foreground">+{post.tags.length - 2}</span>
@@ -357,7 +357,7 @@ function BlogTable({ posts }: { posts: BlogPost[] }) {
                                 </span>
                             </td>
                             <td className="px-4 py-4">
-                                <button className="w-7 h-7 rounded-full hover:bg-white/5 flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors">
+                                <button className="w-7 h-7 rounded-full hover:bg-muted flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors">
                                     <MoreHorizontal size={15} />
                                 </button>
                             </td>

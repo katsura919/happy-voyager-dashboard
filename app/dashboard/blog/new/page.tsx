@@ -112,7 +112,7 @@ function NewBlogPageInner() {
                 <div className="flex items-center gap-3">
                     <Link
                         href="/dashboard/blog"
-                        className="w-9 h-9 rounded-full bg-card border border-white/10 flex items-center justify-center text-muted-foreground hover:text-foreground hover:border-white/30 transition-all"
+                        className="w-9 h-9 rounded-full bg-card border border-border flex items-center justify-center text-muted-foreground hover:text-foreground hover:border-sidebar-foreground/30 transition-all"
                     >
                         <ArrowLeft size={16} />
                     </Link>
@@ -125,7 +125,7 @@ function NewBlogPageInner() {
                     <button
                         onClick={() => handleSave("draft")}
                         disabled={isPending || isUploading}
-                        className="flex items-center gap-2 px-4 py-2 rounded-full text-sm border border-white/10 text-muted-foreground hover:text-foreground hover:border-white/30 transition-all disabled:opacity-50"
+                        className="flex items-center gap-2 px-4 py-2 rounded-full text-sm border border-border text-muted-foreground hover:text-foreground hover:border-sidebar-foreground/30 transition-all disabled:opacity-50"
                     >
                         {isPending && status === "draft" ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />}
                         Save Draft
@@ -146,7 +146,7 @@ function NewBlogPageInner() {
                 {/* Editor Area */}
                 <div className="flex-1 flex flex-col gap-4 min-w-0">
                     {/* Title */}
-                    <div className="bg-card rounded-[20px] border border-white/5 px-6 py-4">
+                    <div className="bg-card rounded-[20px] border border-border px-6 py-4">
                         <input
                             type="text"
                             placeholder="Post title..."
@@ -157,7 +157,7 @@ function NewBlogPageInner() {
                     </div>
 
                     {/* Excerpt */}
-                    <div className="bg-card rounded-[20px] border border-white/5 px-6 py-4">
+                    <div className="bg-card rounded-[20px] border border-border px-6 py-4">
                         <textarea
                             placeholder="Write a short excerpt or summary..."
                             value={excerpt}
@@ -168,7 +168,7 @@ function NewBlogPageInner() {
                     </div>
 
                     {/* Rich Text Editor */}
-                    <div className="bg-card rounded-[20px] border border-white/5 flex flex-col flex-1 overflow-hidden">
+                    <div className="bg-card rounded-[20px] border border-border flex flex-col flex-1 overflow-hidden">
                         <BlogEditor ref={editorRef} onWordCountChange={setWordCount} />
                     </div>
                 </div>
@@ -176,7 +176,7 @@ function NewBlogPageInner() {
                 {/* Sidebar */}
                 <div className="w-72 shrink-0 flex flex-col gap-4 overflow-y-auto">
                     {/* Status */}
-                    <div className="bg-card rounded-[20px] border border-white/5 p-5">
+                    <div className="bg-card rounded-[20px] border border-border p-5">
                         <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">Status</h3>
                         <div className="flex gap-2">
                             <button
@@ -185,7 +185,7 @@ function NewBlogPageInner() {
                                     "flex-1 flex items-center justify-center gap-2 py-2 rounded-full text-xs font-medium border transition-all",
                                     status === "draft"
                                         ? "bg-zinc-700/50 text-zinc-300 border-zinc-600"
-                                        : "border-white/10 text-muted-foreground hover:border-white/30"
+                                        : "border-border text-muted-foreground hover:border-sidebar-foreground/30"
                                 )}
                             >
                                 <Lock size={12} /> Draft
@@ -196,7 +196,7 @@ function NewBlogPageInner() {
                                     "flex-1 flex items-center justify-center gap-2 py-2 rounded-full text-xs font-medium border transition-all",
                                     status === "published"
                                         ? "bg-primary/20 text-primary border-primary/40"
-                                        : "border-white/10 text-muted-foreground hover:border-white/30"
+                                        : "border-border text-muted-foreground hover:border-sidebar-foreground/30"
                                 )}
                             >
                                 <Globe size={12} /> Published
@@ -205,14 +205,14 @@ function NewBlogPageInner() {
                     </div>
 
                     {/* Category */}
-                    <div className="bg-card rounded-[20px] border border-white/5 p-5">
+                    <div className="bg-card rounded-[20px] border border-border p-5">
                         <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3 flex items-center gap-2">
                             <Tag size={12} /> Category
                         </h3>
                         <select
                             value={category}
                             onChange={(e) => setCategory(e.target.value)}
-                            className="w-full bg-background/50 border border-white/10 rounded-xl px-3 py-2 text-sm text-foreground focus:outline-none focus:border-primary/50 transition-colors"
+                            className="w-full bg-background/50 border border-border rounded-xl px-3 py-2 text-sm text-foreground focus:outline-none focus:border-primary/50 transition-colors"
                         >
                             {CATEGORIES.map((cat) => (
                                 <option key={cat} value={cat}>{cat}</option>
@@ -221,7 +221,7 @@ function NewBlogPageInner() {
                     </div>
 
                     {/* Tags */}
-                    <div className="bg-card rounded-[20px] border border-white/5 p-5">
+                    <div className="bg-card rounded-[20px] border border-border p-5">
                         <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3 flex items-center gap-2">
                             <Tag size={12} /> Tags
                         </h3>
@@ -231,14 +231,14 @@ function NewBlogPageInner() {
                             value={tagInput}
                             onChange={(e) => setTagInput(e.target.value)}
                             onKeyDown={handleAddTag}
-                            className="w-full bg-background/50 border border-white/10 rounded-xl px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:border-primary/50 transition-colors mb-3"
+                            className="w-full bg-background/50 border border-border rounded-xl px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:border-primary/50 transition-colors mb-3"
                         />
                         {tags.length > 0 && (
                             <div className="flex flex-wrap gap-1.5">
                                 {tags.map((tag) => (
                                     <span
                                         key={tag}
-                                        className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-background/50 border border-white/10 text-xs text-muted-foreground"
+                                        className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-background/50 border border-border text-xs text-muted-foreground"
                                     >
                                         {tag}
                                         <button onClick={() => handleRemoveTag(tag)} className="text-muted-foreground hover:text-foreground ml-0.5">×</button>
@@ -249,7 +249,7 @@ function NewBlogPageInner() {
                     </div>
 
                     {/* Cover Image */}
-                    <div className="bg-card rounded-[20px] border border-white/5 p-5">
+                    <div className="bg-card rounded-[20px] border border-border p-5">
                         <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3 flex items-center gap-2">
                             <ImageIcon size={12} /> Cover Image
                         </h3>
@@ -272,7 +272,7 @@ function NewBlogPageInner() {
                                 )}
                             </div>
                         ) : (
-                            <label className="mt-1 rounded-xl border border-dashed border-white/10 aspect-video flex flex-col items-center justify-center gap-2 text-muted-foreground/50 hover:border-white/30 hover:text-muted-foreground transition-all cursor-pointer">
+                            <label className="mt-1 rounded-xl border border-dashed border-border aspect-video flex flex-col items-center justify-center gap-2 text-muted-foreground/50 hover:border-sidebar-foreground/30 hover:text-muted-foreground transition-all cursor-pointer">
                                 <Upload size={24} />
                                 <span className="text-xs">Click to upload</span>
                                 <input
@@ -286,7 +286,7 @@ function NewBlogPageInner() {
                     </div>
 
                     {/* Publish Date */}
-                    <div className="bg-card rounded-[20px] border border-white/5 p-5">
+                    <div className="bg-card rounded-[20px] border border-border p-5">
                         <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3 flex items-center gap-2">
                             <Calendar size={12} /> Publish Date
                         </h3>
@@ -294,7 +294,7 @@ function NewBlogPageInner() {
                             type="date"
                             value={publishDate}
                             onChange={(e) => setPublishDate(e.target.value)}
-                            className="w-full bg-background/50 border border-white/10 rounded-xl px-3 py-2 text-sm text-foreground focus:outline-none focus:border-primary/50 transition-colors"
+                            className="w-full bg-background/50 border border-border rounded-xl px-3 py-2 text-sm text-foreground focus:outline-none focus:border-primary/50 transition-colors"
                         />
                     </div>
                 </div>
