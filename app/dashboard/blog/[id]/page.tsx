@@ -9,7 +9,7 @@ import { BlogEditor, BlogEditorHandle } from "@/components/blog/blog-editor";
 import { getBlogPost, updateBlogPost } from "@/hooks/blog";
 import { uploadToCloudinary } from "@/hooks/cloudinary";
 import {
-    ArrowLeft, Save, Tag, Calendar, ImageIcon, Globe, Lock,
+    ArrowLeft, Save, Tag, ImageIcon,
     Upload, X, Loader2, Trash2, ExternalLink, ChevronDown,
 } from "lucide-react";
 import Link from "next/link";
@@ -123,10 +123,10 @@ function EditBlogPageInner() {
         setCoverImagePreview("");
     };
 
-    const handleSave = (saveStatus: "draft" | "published") => {
+    const handleSave = () => {
         if (!title.trim()) { toast.error("Please add a title before saving"); return; }
         if (isUploading) { toast.error("Please wait for the image to finish uploading"); return; }
-        setStatus(saveStatus);
+
         savePost({
             id,
             title,
@@ -135,7 +135,7 @@ function EditBlogPageInner() {
             cover_image_url: coverImageUrl,
             category,
             tags,
-            status: saveStatus,
+            status,
             publish_date: publishDate || null,
         });
     };
@@ -177,35 +177,59 @@ function EditBlogPageInner() {
                         <h1 className="text-xl font-black tracking-tight text-foreground uppercase line-clamp-1 max-w-xs md:max-w-lg">
                             {title || "Untitled Post"}
                         </h1>
-                        <div className="flex items-center gap-3 mt-0.5">
-                            <p className="text-xs text-muted-foreground">{wordCount} words</p>
+                        <div className="flex items-center gap-3 mt-1">
                             <span className={cn(
                                 "text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full",
                                 post.status === "published"
                                     ? "bg-primary/20 text-primary"
                                     : "bg-zinc-700/50 text-zinc-400"
                             )}>
-                                {post.status}
+                                {status}
                             </span>
+                            <div className="h-3 w-px bg-border" />
+                            <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-medium">
+                                Created {new Date(post.created_at).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
+                            </p>
+                            <div className="h-3 w-px bg-border" />
+                            <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-medium">
+                                Updated {new Date(post.updated_at).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
+                            </p>
+                            <div className="h-3 w-px bg-border" />
+                            <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-medium">
+                                {wordCount} words
+                            </p>
                         </div>
                     </div>
                 </div>
                 <div className="flex items-center gap-2">
+                    <div className="flex items-center bg-card border border-border rounded-full p-1 pr-2">
+                        <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                                <button className="flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium hover:bg-muted/50 transition-colors focus:outline-none">
+                                    <span className={cn(
+                                        "w-2 h-2 rounded-full",
+                                        status === "published" ? "bg-primary" : "bg-zinc-500"
+                                    )} />
+                                    {status === "published" ? "Published" : "Draft"}
+                                    <ChevronDown size={14} className="text-muted-foreground opacity-50" />
+                                </button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                                <DropdownMenuRadioGroup value={status} onValueChange={(val) => setStatus(val as "draft" | "published")}>
+                                    <DropdownMenuRadioItem value="draft">Draft</DropdownMenuRadioItem>
+                                    <DropdownMenuRadioItem value="published">Published</DropdownMenuRadioItem>
+                                </DropdownMenuRadioGroup>
+                            </DropdownMenuContent>
+                        </DropdownMenu>
+                    </div>
+
                     <button
-                        onClick={() => handleSave("draft")}
-                        disabled={isPending || isUploading}
-                        className="flex items-center gap-2 px-4 py-2 rounded-full text-sm border border-border text-muted-foreground hover:text-foreground hover:border-sidebar-foreground/30 transition-all disabled:opacity-50"
-                    >
-                        {isPending && status === "draft" ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />}
-                        Save Draft
-                    </button>
-                    <button
-                        onClick={() => handleSave("published")}
+                        onClick={handleSave}
                         disabled={isPending || isUploading}
                         className="flex items-center gap-2 px-5 py-2 rounded-full text-sm bg-primary text-primary-foreground font-semibold hover:opacity-90 transition-opacity disabled:opacity-50"
                     >
-                        {isPending && status === "published" ? <Loader2 size={14} className="animate-spin" /> : <Globe size={14} />}
-                        {isPending && status === "published" ? "Publishing..." : "Publish"}
+                        {isPending ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />}
+                        Save
                     </button>
                 </div>
             </div>
@@ -248,41 +272,6 @@ function EditBlogPageInner() {
 
                 {/* Sidebar */}
                 <div className="w-72 shrink-0 flex flex-col gap-4 overflow-y-auto">
-                    {/* Meta */}
-                    <div className="bg-card rounded-[20px] border border-border p-5 text-xs text-muted-foreground space-y-1">
-                        <p>Created: <span className="text-foreground">{new Date(post.created_at).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" })}</span></p>
-                        <p>Updated: <span className="text-foreground">{new Date(post.updated_at).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" })}</span></p>
-                    </div>
-
-                    {/* Status */}
-                    <div className="bg-card rounded-[20px] border border-border p-5">
-                        <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">Status</h3>
-                        <div className="flex gap-2">
-                            <button
-                                onClick={() => setStatus("draft")}
-                                className={cn(
-                                    "flex-1 flex items-center justify-center gap-2 py-2 rounded-full text-xs font-medium border transition-all",
-                                    status === "draft"
-                                        ? "bg-zinc-700/50 text-zinc-300 border-zinc-600"
-                                        : "border-border text-muted-foreground hover:border-sidebar-foreground/30"
-                                )}
-                            >
-                                <Lock size={12} /> Draft
-                            </button>
-                            <button
-                                onClick={() => setStatus("published")}
-                                className={cn(
-                                    "flex-1 flex items-center justify-center gap-2 py-2 rounded-full text-xs font-medium border transition-all",
-                                    status === "published"
-                                        ? "bg-primary/20 text-primary border-primary/40"
-                                        : "border-border text-muted-foreground hover:border-sidebar-foreground/30"
-                                )}
-                            >
-                                <Globe size={12} /> Published
-                            </button>
-                        </div>
-                    </div>
-
                     {/* Category */}
                     <div className="bg-card rounded-[20px] border border-border p-5">
                         <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3 flex items-center gap-2">
@@ -352,18 +341,7 @@ function EditBlogPageInner() {
                         )}
                     </div>
 
-                    {/* Publish Date */}
-                    <div className="bg-card rounded-[20px] border border-border p-5">
-                        <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3 flex items-center gap-2">
-                            <Calendar size={12} /> Publish Date
-                        </h3>
-                        <input
-                            type="date"
-                            value={publishDate}
-                            onChange={(e) => setPublishDate(e.target.value)}
-                            className="w-full bg-background/50 border border-border rounded-xl px-3 py-2 text-sm text-foreground focus:outline-none focus:border-primary/50 transition-colors"
-                        />
-                    </div>
+
                 </div>
             </div>
         </div>

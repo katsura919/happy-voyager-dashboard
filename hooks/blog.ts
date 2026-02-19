@@ -104,6 +104,7 @@ export async function updateBlogPost({ id, ...payload }: UpdateBlogPostPayload):
         .from("blog_posts")
         .update({
             title: payload.title.trim(),
+            slug: payload.slug ?? slugify(payload.title),
             excerpt: payload.excerpt?.trim() ?? "",
             content: payload.content ?? "",
             cover_image_url: payload.cover_image_url ?? "",

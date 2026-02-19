@@ -32,7 +32,7 @@ export function TagsInput({
     return (
         <div className={cn("flex flex-col gap-2", className)}>
             {label && (
-                <label className="text-sm font-medium text-foreground">
+                <label className="text-sm font-medium text-muted-foreground">
                     {label}
                 </label>
             )}
