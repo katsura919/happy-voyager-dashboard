@@ -3,6 +3,8 @@
 @tailwind utilities;
 
 @layer base {
+
+  /* ── LIGHT THEME ──────────────────────────────────────────── */
   :root {
     --background: 0 0% 100%;
     --foreground: 0 0% 3.9%;
@@ -30,16 +32,19 @@
     --chart-5: 27 87% 67%;
     --radius: 0.5rem;
   }
+
+  /* ── DARK THEME ───────────────────────────────────────────── */
   .dark {
     --background: 240 10% 3.9%;
     --foreground: 0 0% 98%;
-    --card: 240 6% 10%; /* Darker card background */
+    --card: 240 6% 10%;
     --card-foreground: 0 0% 98%;
     --popover: 240 10% 3.9%;
     --popover-foreground: 0 0% 98%;
-    --primary: 74 81% 69%; /* Lime #bef264 */
+    --primary: 0 0% 98%;
+    /* White */
     --primary-foreground: 240 5.9% 10%;
-    --secondary: 27 96% 61%; /* Orange #fb923c */
+    --secondary: 240 3.7% 20%;
     --secondary-foreground: 0 0% 98%;
     --muted: 240 3.7% 15.9%;
     --muted-foreground: 240 5% 64.9%;
@@ -56,18 +61,61 @@
     --chart-4: 280 65% 60%;
     --chart-5: 340 75% 55%;
   }
+
+  /* ── WARM THEME (Happy Voyager Brand) ────────────────────── */
+  /*
+    --color-charcoal:   #3a3a3a  → hsl(0 0% 23%)
+    --color-warm-beige: #e7ddd3  → hsl(25 23% 86%)
+    --color-dusty-rose: #e3a99c  → hsl(8 57% 75%)
+    --color-soft-peach: #f2d6c9  → hsl(19 63% 87%)
+    --color-cream:      #f9f5f2  → hsl(27 38% 96%)
+    --color-sage:       #bbcccd  → hsl(184 12% 77%)
+  */
+  .warm {
+    --background: 27 38% 96%;
+    /* cream */
+    --foreground: 0 0% 23%;
+    /* charcoal */
+    --card: 0 0% 100%;
+    --card-foreground: 0 0% 23%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 23%;
+    --primary: 8 57% 75%;
+    /* dusty-rose */
+    --primary-foreground: 0 0% 100%;
+    --secondary: 25 23% 86%;
+    /* warm-beige */
+    --secondary-foreground: 0 0% 23%;
+    --muted: 19 63% 87%;
+    /* soft-peach */
+    --muted-foreground: 0 0% 40%;
+    --accent: 184 12% 77%;
+    /* sage */
+    --accent-foreground: 0 0% 23%;
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 25 23% 83%;
+    --input: 25 23% 83%;
+    --ring: 8 57% 75%;
+    --chart-1: 8 57% 75%;
+    --chart-2: 184 12% 57%;
+    --chart-3: 19 63% 70%;
+    --chart-4: 25 30% 60%;
+    --chart-5: 0 0% 40%;
+    --radius: 0.5rem;
+  }
 }
 
 @layer base {
   * {
     @apply border-border;
   }
+
   body {
     @apply bg-background text-foreground;
   }
 }
 
-
-::-webkit-scrollbar{
+::-webkit-scrollbar {
   display: none;
 }

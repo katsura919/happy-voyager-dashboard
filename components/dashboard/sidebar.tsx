@@ -95,14 +95,6 @@ export function Sidebar() {
                     {/* Theme switcher */}
                     <ThemeSwitcher />
 
-                    {/* Search */}
-                    <button
-                        title="Search"
-                        className="w-10 h-10 rounded-full bg-card flex items-center justify-center hover:bg-white/5 transition-colors border border-white/5"
-                    >
-                        <Search size={18} className="text-muted-foreground" />
-                    </button>
-
                     {/* User avatar */}
                     <div className="relative">
                         <div className="w-10 h-10 rounded-full bg-zinc-800 border border-white/10 flex items-center justify-center overflow-hidden">
