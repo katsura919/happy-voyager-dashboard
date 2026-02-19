@@ -7,8 +7,18 @@ import { toast } from "sonner";
 import { BlogEditor, BlogEditorHandle } from "@/components/blog/blog-editor";
 import { createBlogPost } from "@/hooks/blog";
 import { uploadToCloudinary } from "@/hooks/cloudinary";
-import { ArrowLeft, Save, Tag, Calendar, ImageIcon, Globe, Lock, Upload, X, Loader2 } from "lucide-react";
+import { ArrowLeft, Save, Tag, Calendar, ImageIcon, Globe, Lock, Upload, X, Loader2, ChevronDown } from "lucide-react";
 import Link from "next/link";
+import { TagsInput } from "@/components/ui/tags-input";
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuLabel,
+    DropdownMenuRadioGroup,
+    DropdownMenuRadioItem,
+    DropdownMenuSeparator,
+    DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
 
 const CATEGORIES = ["Travel Tips", "Destinations", "Food & Culture", "Budget Travel", "Safety", "Luxury", "Family Travel", "Eco Travel", "Digital Nomad", "Cruises"];
@@ -21,7 +31,6 @@ function NewBlogPageInner() {
     const [excerpt, setExcerpt] = useState("");
     const [category, setCategory] = useState(CATEGORIES[0]);
     const [tags, setTags] = useState<string[]>([]);
-    const [tagInput, setTagInput] = useState("");
     const [coverImageUrl, setCoverImageUrl] = useState("");
     const [coverImagePreview, setCoverImagePreview] = useState("");
     const [status, setStatus] = useState<"draft" | "published">("draft");
@@ -67,19 +76,6 @@ function NewBlogPageInner() {
     const handleRemoveCover = () => {
         setCoverImageUrl("");
         setCoverImagePreview("");
-    };
-
-    const handleAddTag = (e: React.KeyboardEvent<HTMLInputElement>) => {
-        if ((e.key === "Enter" || e.key === ",") && tagInput.trim()) {
-            e.preventDefault();
-            const newTag = tagInput.trim().toLowerCase().replace(/,/g, "");
-            if (!tags.includes(newTag)) setTags([...tags, newTag]);
-            setTagInput("");
-        }
-    };
-
-    const handleRemoveTag = (tag: string) => {
-        setTags(tags.filter((t) => t !== tag));
     };
 
     const handleSave = (saveStatus: "draft" | "published") => {
@@ -168,7 +164,7 @@ function NewBlogPageInner() {
                     </div>
 
                     {/* Rich Text Editor */}
-                    <div className="bg-card rounded-[20px] border border-border flex flex-col flex-1 overflow-hidden">
+                    <div className="bg-card rounded-[20px] border border-border flex flex-col flex-1 overflow-hidden [&>div]:h-full">
                         <BlogEditor ref={editorRef} onWordCountChange={setWordCount} />
                     </div>
                 </div>
@@ -209,43 +205,37 @@ function NewBlogPageInner() {
                         <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3 flex items-center gap-2">
                             <Tag size={12} /> Category
                         </h3>
-                        <select
-                            value={category}
-                            onChange={(e) => setCategory(e.target.value)}
-                            className="w-full bg-background/50 border border-border rounded-xl px-3 py-2 text-sm text-foreground focus:outline-none focus:border-primary/50 transition-colors"
-                        >
-                            {CATEGORIES.map((cat) => (
-                                <option key={cat} value={cat}>{cat}</option>
-                            ))}
-                        </select>
+                        <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                                <button className="w-full flex items-center justify-between bg-background/50 border border-border rounded-xl px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring transition-colors">
+                                    {category}
+                                    <ChevronDown size={14} className="text-muted-foreground opacity-50" />
+                                </button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent className="w-56" align="start">
+                                <DropdownMenuLabel>Select Category</DropdownMenuLabel>
+                                <DropdownMenuSeparator />
+                                <DropdownMenuRadioGroup value={category} onValueChange={setCategory}>
+                                    {CATEGORIES.map((cat) => (
+                                        <DropdownMenuRadioItem key={cat} value={cat}>
+                                            {cat}
+                                        </DropdownMenuRadioItem>
+                                    ))}
+                                </DropdownMenuRadioGroup>
+                            </DropdownMenuContent>
+                        </DropdownMenu>
                     </div>
 
                     {/* Tags */}
                     <div className="bg-card rounded-[20px] border border-border p-5">
-                        <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3 flex items-center gap-2">
-                            <Tag size={12} /> Tags
-                        </h3>
-                        <input
-                            type="text"
-                            placeholder="Add tag, press Enter..."
-                            value={tagInput}
-                            onChange={(e) => setTagInput(e.target.value)}
-                            onKeyDown={handleAddTag}
-                            className="w-full bg-background/50 border border-border rounded-xl px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:border-primary/50 transition-colors mb-3"
+                        <TagsInput
+                            label="Tags"
+                            value={tags}
+                            onValueChange={setTags}
+                            placeholder="Add tag..."
+                            max={5}
+                            onClear={() => setTags([])}
                         />
-                        {tags.length > 0 && (
-                            <div className="flex flex-wrap gap-1.5">
-                                {tags.map((tag) => (
-                                    <span
-                                        key={tag}
-                                        className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-background/50 border border-border text-xs text-muted-foreground"
-                                    >
-                                        {tag}
-                                        <button onClick={() => handleRemoveTag(tag)} className="text-muted-foreground hover:text-foreground ml-0.5">×</button>
-                                    </span>
-                                ))}
-                            </div>
-                        )}
                     </div>
 
                     {/* Cover Image */}

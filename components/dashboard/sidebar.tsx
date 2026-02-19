@@ -68,7 +68,7 @@ export function Sidebar() {
 
             <aside
                 className={cn(
-                    "fixed md:static inset-y-0 left-0 z-50 flex flex-col items-center py-8 px-4 w-24 bg-sidebar border-r md:border-r-0 border-white/5 transition-transform duration-300 ease-in-out gap-6",
+                    "fixed md:static inset-y-0 left-0 z-50 flex flex-col items-center py-8 px-4 w-24 bg-card border-r md:border-r-0 border-white/5 transition-transform duration-300 ease-in-out gap-6",
                     isOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"
                 )}
             >

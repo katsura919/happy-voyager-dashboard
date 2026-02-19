@@ -88,51 +88,53 @@ export const BlogEditor = forwardRef<BlogEditorHandle, BlogEditorProps>(
 
         return (
             <RichTextProvider editor={editor}>
-                {/* Toolbar */}
-                <div id="blog-editor-toolbar" className="flex items-center gap-1 flex-wrap px-4 py-3 border-b border-border shrink-0">
-                    <ToolbarGroup>
-                        <RichTextUndo />
-                        <RichTextRedo />
-                    </ToolbarGroup>
-                    <Divider />
-                    <ToolbarGroup>
-                        <RichTextHeading />
-                    </ToolbarGroup>
-                    <Divider />
-                    <ToolbarGroup>
-                        <RichTextBold />
-                        <RichTextItalic />
-                        <RichTextUnderline />
-                        <RichTextStrike />
-                        <RichTextHighlight />
-                    </ToolbarGroup>
-                    <Divider />
-                    <ToolbarGroup>
-                        <RichTextAlign />
-                    </ToolbarGroup>
-                    <Divider />
-                    <ToolbarGroup>
-                        <RichTextBulletList />
-                        <RichTextOrderedList />
-                    </ToolbarGroup>
-                    <Divider />
-                    <ToolbarGroup>
-                        <RichTextBlockquote />
-                        <RichTextLink />
-                        <RichTextHorizontalRule />
-                    </ToolbarGroup>
-                    <Divider />
-                    <ToolbarGroup>
-                        <RichTextClear />
-                    </ToolbarGroup>
-                </div>
+                <div className="flex flex-col h-full overflow-hidden relative">
+                    {/* Toolbar */}
+                    <div id="blog-editor-toolbar" className="flex items-center gap-1 flex-wrap px-4 py-3 border-b border-border shrink-0 bg-card z-10 w-full">
+                        <ToolbarGroup>
+                            <RichTextUndo />
+                            <RichTextRedo />
+                        </ToolbarGroup>
+                        <Divider />
+                        <ToolbarGroup>
+                            <RichTextHeading />
+                        </ToolbarGroup>
+                        <Divider />
+                        <ToolbarGroup>
+                            <RichTextBold />
+                            <RichTextItalic />
+                            <RichTextUnderline />
+                            <RichTextStrike />
+                            <RichTextHighlight />
+                        </ToolbarGroup>
+                        <Divider />
+                        <ToolbarGroup>
+                            <RichTextAlign />
+                        </ToolbarGroup>
+                        <Divider />
+                        <ToolbarGroup>
+                            <RichTextBulletList />
+                            <RichTextOrderedList />
+                        </ToolbarGroup>
+                        <Divider />
+                        <ToolbarGroup>
+                            <RichTextBlockquote />
+                            <RichTextLink />
+                            <RichTextHorizontalRule />
+                        </ToolbarGroup>
+                        <Divider />
+                        <ToolbarGroup>
+                            <RichTextClear />
+                        </ToolbarGroup>
+                    </div>
 
-                {/* Content */}
-                <div className="flex-1 overflow-y-auto p-6">
-                    <EditorContent
-                        editor={editor}
-                        className="prose dark:prose-invert max-w-none min-h-[300px] focus:outline-none [&_.tiptap]:outline-none [&_.tiptap]:min-h-[300px] [&_.tiptap]:bg-transparent [&_.tiptap]:text-foreground [&_.ProseMirror]:bg-transparent [&_.ProseMirror]:text-foreground"
-                    />
+                    {/* Content */}
+                    <div className="flex-1 overflow-y-auto p-6 scrollbar-thin scrollbar-thumb-muted scrollbar-track-transparent">
+                        <EditorContent
+                            editor={editor}
+                            className="prose dark:prose-invert max-w-none min-h-full focus:outline-none [&_.tiptap]:outline-none [&_.tiptap]:h-full [&_.tiptap]:bg-transparent [&_.tiptap]:text-foreground [&_.ProseMirror]:bg-transparent [&_.ProseMirror]:text-foreground overflow-y-auto"
+                        />
+                    </div>
                 </div>
             </RichTextProvider>
         );

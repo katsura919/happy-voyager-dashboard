@@ -18,8 +18,8 @@ export default async function DashboardLayout({
             <Sidebar />
 
             {/* Main Content Area with padding for floating effect */}
-            <div className="flex-1 h-full p-6 overflow-hidden">
-                <div className="flex flex-col h-full w-full rounded-[32px] bg-card overflow-hidden border border-white/5 shadow-2xl relative shadow-xl">
+            <div className="flex-1 h-full p-6 overflow-hidden bg-card">
+                <div className="flex flex-col h-full w-full rounded-[32px] bg-background overflow-hidden border border-white/5 shadow-2xl relative shadow-none">
 
 
                     {/* Scrollable Content */}
