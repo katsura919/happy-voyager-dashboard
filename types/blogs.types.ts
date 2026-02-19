@@ -1,5 +1,6 @@
 export interface CreateBlogPostPayload {
     title: string;
+    slug?: string | null;
     excerpt: string;
     content: string;
     cover_image_url: string;
@@ -11,6 +12,7 @@ export interface CreateBlogPostPayload {
 
 export interface BlogPost extends CreateBlogPostPayload {
     id: string;
+    slug: string | null;
     author_id: string;
     created_at: string;
     updated_at: string;

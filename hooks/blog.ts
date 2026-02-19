@@ -1,13 +1,24 @@
 import { createClient } from "@/lib/supabase/client";
-import { 
-        CreateBlogPostPayload, 
-        UpdateBlogPostPayload, 
-        BlogPost,
-        FetchBlogPostsParams,
-        PaginatedBlogResponse
-        } from "@/types/blogs.types";
+import {
+    CreateBlogPostPayload,
+    UpdateBlogPostPayload,
+    BlogPost,
+    FetchBlogPostsParams,
+    PaginatedBlogResponse
+} from "@/types/blogs.types";
 
 
+function slugify(text: string): string {
+    return text
+        .toString()
+        .toLowerCase()
+        .trim()
+        .replace(/\s+/g, '-')     // Replace spaces with -
+        .replace(/[^\w\-]+/g, '') // Remove all non-word chars
+        .replace(/\-\-+/g, '-')   // Replace multiple - with single -
+        .replace(/^-+/, '')       // Trim - from start of text
+        .replace(/-+$/, '');      // Trim - from end of text
+}
 
 /**
  * Fetch paginated blog posts directly from Supabase (no API route needed).
@@ -133,6 +144,7 @@ export async function createBlogPost(payload: CreateBlogPostPayload): Promise<Bl
             status: payload.status ?? "draft",
             publish_date: payload.publish_date ?? null,
             author_id: user.id,
+            slug: payload.slug ?? slugify(payload.title),
         })
         .select()
         .single();
