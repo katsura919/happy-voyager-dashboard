@@ -16,6 +16,7 @@ export interface BlogPost extends CreateBlogPostPayload {
     author_id: string;
     created_at: string;
     updated_at: string;
+    views: number;
 }
 
 export interface UpdateBlogPostPayload extends CreateBlogPostPayload {
@@ -37,4 +38,21 @@ export interface PaginatedBlogResponse {
     page: number;
     limit: number;
     totalPages: number;
+}
+
+export interface BlogComment {
+    id: string;
+    blog_id: string;
+    author_name: string;
+    author_email?: string;
+    content: string;
+    status: 'pending' | 'approved' | 'spam';
+    created_at: string;
+}
+
+export interface CreateCommentPayload {
+    blog_id: string;
+    author_name: string;
+    author_email?: string;
+    content: string;
 }

@@ -4,7 +4,9 @@ import {
     UpdateBlogPostPayload,
     BlogPost,
     FetchBlogPostsParams,
-    PaginatedBlogResponse
+    PaginatedBlogResponse,
+    BlogComment,
+    CreateCommentPayload
 } from "@/types/blogs.types";
 
 
@@ -87,6 +89,75 @@ export async function getBlogPost(id: string): Promise<BlogPost> {
 
     if (error) throw new Error(error.message);
     return data as BlogPost;
+}
+
+/**
+ * Increment the view count for a blog post.
+ */
+export async function incrementBlogViews(id: string): Promise<void> {
+    const supabase = createClient();
+    await supabase.rpc('increment_blog_views', { blog_id: id });
+}
+
+/**
+ * Fetch comments for a blog post.
+ */
+export async function fetchBlogComments(blogId: string): Promise<BlogComment[]> {
+    const supabase = createClient();
+    const { data, error } = await supabase
+        .from('blog_comments')
+        .select('*')
+        .eq('blog_id', blogId)
+        .order('created_at', { ascending: false });
+
+    if (error) throw new Error(error.message);
+    return data as BlogComment[];
+}
+
+/**
+ * Create a new comment.
+ */
+export async function createBlogComment(payload: CreateCommentPayload): Promise<BlogComment> {
+    const supabase = createClient();
+    const { data, error } = await supabase
+        .from('blog_comments')
+        .insert({
+            blog_id: payload.blog_id,
+            author_name: payload.author_name,
+            author_email: payload.author_email,
+            content: payload.content,
+        })
+        .select()
+        .single();
+
+    if (error) throw new Error(error.message);
+    return data as BlogComment;
+}
+
+/**
+ * Update a comment's status (approve/spam/pending).
+ */
+export async function updateBlogCommentStatus(commentId: string, status: 'pending' | 'approved' | 'spam'): Promise<void> {
+    const supabase = createClient();
+    const { error } = await supabase
+        .from('blog_comments')
+        .update({ status })
+        .eq('id', commentId);
+
+    if (error) throw new Error(error.message);
+}
+
+/**
+ * Delete a comment.
+ */
+export async function deleteBlogComment(commentId: string): Promise<void> {
+    const supabase = createClient();
+    const { error } = await supabase
+        .from('blog_comments')
+        .delete()
+        .eq('id', commentId);
+
+    if (error) throw new Error(error.message);
 }
 
 /**

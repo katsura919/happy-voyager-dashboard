@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Search, LayoutGrid, List, Plus, Calendar, Tag, MoreHorizontal, Loader2, FileText, ChevronLeft, ChevronRight } from "lucide-react";
+import { Search, LayoutGrid, List, Plus, Calendar, Tag, MoreHorizontal, Loader2, FileText, ChevronLeft, ChevronRight, Eye } from "lucide-react";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
 import { fetchBlogPosts } from "@/hooks/blog";
@@ -281,6 +281,10 @@ function BlogCard({ post }: { post: BlogPost }) {
                         <div className="w-6 h-6 rounded-full bg-zinc-700 flex items-center justify-center text-[10px] font-bold text-white">A</div>
                         <span className="text-xs text-muted-foreground">Author</span>
                     </div>
+                    <span className="flex items-center gap-1 text-xs text-muted-foreground mr-3">
+                        <Eye size={11} />
+                        {post.views}
+                    </span>
                     <span className="flex items-center gap-1 text-xs text-muted-foreground">
                         <Calendar size={11} />
                         {new Date(post.created_at).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
@@ -302,6 +306,7 @@ function BlogTable({ posts }: { posts: BlogPost[] }) {
                         <th className="text-left px-4 py-4 text-xs font-semibold text-muted-foreground uppercase tracking-wider hidden md:table-cell">Category</th>
                         <th className="text-left px-4 py-4 text-xs font-semibold text-muted-foreground uppercase tracking-wider hidden lg:table-cell">Tags</th>
                         <th className="text-left px-4 py-4 text-xs font-semibold text-muted-foreground uppercase tracking-wider hidden lg:table-cell">Created</th>
+                        <th className="text-left px-4 py-4 text-xs font-semibold text-muted-foreground uppercase tracking-wider hidden sm:table-cell">Views</th>
                         <th className="text-left px-4 py-4 text-xs font-semibold text-muted-foreground uppercase tracking-wider">Status</th>
                         <th className="px-4 py-4"></th>
                     </tr>
@@ -347,6 +352,12 @@ function BlogTable({ posts }: { posts: BlogPost[] }) {
                             </td>
                             <td className="px-4 py-4 hidden lg:table-cell text-muted-foreground text-xs whitespace-nowrap">
                                 {new Date(post.created_at).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" })}
+                            </td>
+                            <td className="px-4 py-4 hidden sm:table-cell text-muted-foreground text-xs">
+                                <div className="flex items-center gap-1">
+                                    <Eye size={14} className="opacity-70" />
+                                    {post.views}
+                                </div>
                             </td>
                             <td className="px-4 py-4">
                                 <span className={cn(

@@ -10,9 +10,13 @@ import { getBlogPost, updateBlogPost } from "@/hooks/blog";
 import { uploadToCloudinary } from "@/hooks/cloudinary";
 import {
     ArrowLeft, Save, Tag, ImageIcon,
-    Upload, X, Loader2, Trash2, ExternalLink, ChevronDown,
+    Upload, X, Loader2, Trash2, ExternalLink, ChevronDown, Eye,
+    PenTool, BarChart3, MessageSquare,
 } from "lucide-react";
 import Link from "next/link";
+import { CommentsSection } from "@/components/blog/comments-section";
+import { Separator } from "@/components/ui/separator";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { TagsInput } from "@/components/ui/tags-input";
 import {
     DropdownMenu,
@@ -198,6 +202,10 @@ function EditBlogPageInner() {
                             <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-medium">
                                 {wordCount} words
                             </p>
+                            <div className="h-3 w-px bg-border" />
+                            <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-medium flex items-center gap-1">
+                                <Eye size={10} /> {post.views} views
+                            </p>
                         </div>
                     </div>
                 </div>
@@ -235,115 +243,189 @@ function EditBlogPageInner() {
             </div>
 
             {/* Main Layout */}
-            <div className="flex gap-6 flex-1 min-h-0">
-                {/* Editor Area */}
-                <div className="flex-1 flex flex-col gap-4 min-w-0">
-                    {/* Title */}
-                    <div className="bg-card rounded-[20px] border border-border px-6 py-4">
-                        <input
-                            type="text"
-                            placeholder="Post title..."
-                            value={title}
-                            onChange={(e) => setTitle(e.target.value)}
-                            className="w-full bg-transparent text-2xl font-black text-foreground placeholder:text-muted-foreground/40 focus:outline-none"
-                        />
-                    </div>
-
-                    {/* Excerpt */}
-                    <div className="bg-card rounded-[20px] border border-border px-6 py-4">
-                        <textarea
-                            placeholder="Write a short excerpt or summary..."
-                            value={excerpt}
-                            onChange={(e) => setExcerpt(e.target.value)}
-                            rows={2}
-                            className="w-full bg-transparent text-sm text-muted-foreground placeholder:text-muted-foreground/40 focus:outline-none resize-none"
-                        />
-                    </div>
-
-                    {/* Rich Text Editor */}
-                    <div className="bg-card rounded-[20px] border border-border flex flex-col flex-1 overflow-hidden [&>div]:h-full">
-                        <BlogEditor
-                            ref={editorRef}
-                            onWordCountChange={setWordCount}
-                            initialContent={post.content}
-                        />
-                    </div>
+            <Tabs defaultValue="edit" className="flex flex-col flex-1 min-h-0">
+                <div className="border-b border-border mb-6">
+                    <TabsList className="bg-transparent p-0" variant="line">
+                        <TabsTrigger
+                            value="edit"
+                            className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:text-primary px-4 pb-3 pt-2 bg-transparent"
+                        >
+                            <PenTool size={16} className="mr-2" />
+                            Edit Content
+                        </TabsTrigger>
+                        <TabsTrigger
+                            value="stats"
+                            className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:text-primary px-4 pb-3 pt-2 bg-transparent"
+                        >
+                            <BarChart3 size={16} className="mr-2" />
+                            Stats & Moderation
+                        </TabsTrigger>
+                    </TabsList>
                 </div>
 
-                {/* Sidebar */}
-                <div className="w-72 shrink-0 flex flex-col gap-4 overflow-y-auto">
-                    {/* Category */}
-                    <div className="bg-card rounded-[20px] border border-border p-5">
-                        <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3 flex items-center gap-2">
-                            <Tag size={12} /> Category
-                        </h3>
-                        <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                                <button className="w-full flex items-center justify-between bg-background/50 border border-border rounded-xl px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring transition-colors">
-                                    {category}
-                                    <ChevronDown size={14} className="text-muted-foreground opacity-50" />
-                                </button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent className="w-56" align="start">
-                                <DropdownMenuLabel>Select Category</DropdownMenuLabel>
-                                <DropdownMenuSeparator />
-                                <DropdownMenuRadioGroup value={category} onValueChange={setCategory}>
-                                    {CATEGORIES.map((cat) => (
-                                        <DropdownMenuRadioItem key={cat} value={cat}>
-                                            {cat}
-                                        </DropdownMenuRadioItem>
-                                    ))}
-                                </DropdownMenuRadioGroup>
-                            </DropdownMenuContent>
-                        </DropdownMenu>
+                <TabsContent value="edit" className="flex gap-6 flex-1 min-h-0 mt-0 data-[state=inactive]:hidden">
+                    {/* Editor Area */}
+                    <div className="flex-1 flex flex-col gap-4 min-w-0">
+                        {/* Title */}
+                        <div className="bg-card rounded-[20px] border border-border px-6 py-4">
+                            <input
+                                type="text"
+                                placeholder="Post title..."
+                                value={title}
+                                onChange={(e) => setTitle(e.target.value)}
+                                className="w-full bg-transparent text-2xl font-black text-foreground placeholder:text-muted-foreground/40 focus:outline-none"
+                            />
+                        </div>
+
+                        {/* Excerpt */}
+                        <div className="bg-card rounded-[20px] border border-border px-6 py-4">
+                            <textarea
+                                placeholder="Write a short excerpt or summary..."
+                                value={excerpt}
+                                onChange={(e) => setExcerpt(e.target.value)}
+                                rows={2}
+                                className="w-full bg-transparent text-sm text-muted-foreground placeholder:text-muted-foreground/40 focus:outline-none resize-none"
+                            />
+                        </div>
+
+                        {/* Rich Text Editor */}
+                        <div className="bg-card rounded-[20px] border border-border flex flex-col flex-1 overflow-hidden [&>div]:h-full min-h-[500px]">
+                            <BlogEditor
+                                ref={editorRef}
+                                onWordCountChange={setWordCount}
+                                initialContent={post.content}
+                            />
+                        </div>
                     </div>
 
-                    {/* Tags */}
-                    <div className="bg-card rounded-[20px] border border-border p-5">
-                        <TagsInput
-                            label="Tags"
-                            value={tags}
-                            onValueChange={setTags}
-                            placeholder="Add tag..."
-                            max={5}
-                            onClear={() => setTags([])}
-                        />
-                    </div>
-
-                    {/* Cover Image */}
-                    <div className="bg-card rounded-[20px] border border-border p-5">
-                        <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3 flex items-center gap-2">
-                            <ImageIcon size={12} /> Cover Image
-                        </h3>
-                        {coverImagePreview ? (
-                            <div className="relative rounded-xl overflow-hidden aspect-video">
-                                <img src={coverImagePreview} alt="Cover" className="w-full h-full object-cover" />
-                                {isUploading && (
-                                    <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
-                                        <Loader2 size={24} className="animate-spin text-white" />
-                                    </div>
-                                )}
-                                {!isUploading && (
-                                    <button
-                                        onClick={handleRemoveCover}
-                                        className="absolute top-2 right-2 w-7 h-7 rounded-full bg-black/60 flex items-center justify-center text-white hover:bg-black/80 transition-colors"
-                                    >
-                                        <X size={14} />
+                    {/* Sidebar */}
+                    <div className="w-72 shrink-0 flex flex-col gap-4 overflow-y-auto">
+                        {/* Category */}
+                        <div className="bg-card rounded-[20px] border border-border p-5">
+                            <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3 flex items-center gap-2">
+                                <Tag size={12} /> Category
+                            </h3>
+                            <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                    <button className="w-full flex items-center justify-between bg-background/50 border border-border rounded-xl px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring transition-colors">
+                                        {category}
+                                        <ChevronDown size={14} className="text-muted-foreground opacity-50" />
                                     </button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent className="w-56" align="start">
+                                    <DropdownMenuLabel>Select Category</DropdownMenuLabel>
+                                    <DropdownMenuSeparator />
+                                    <DropdownMenuRadioGroup value={category} onValueChange={setCategory}>
+                                        {CATEGORIES.map((cat) => (
+                                            <DropdownMenuRadioItem key={cat} value={cat}>
+                                                {cat}
+                                            </DropdownMenuRadioItem>
+                                        ))}
+                                    </DropdownMenuRadioGroup>
+                                </DropdownMenuContent>
+                            </DropdownMenu>
+                        </div>
+
+                        {/* Tags */}
+                        <div className="bg-card rounded-[20px] border border-border p-5">
+                            <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3 flex items-center gap-2">
+                                <Tag size={12} /> Tags
+                            </h3>
+                            <TagsInput
+                                value={tags}
+                                onValueChange={setTags}
+                                placeholder="Add tags..."
+                            />
+                        </div>
+
+                        {/* Cover Image */}
+                        <div className="bg-card rounded-[20px] border border-border p-5">
+                            <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3 flex items-center gap-2">
+                                <ImageIcon size={12} /> Cover Image
+                            </h3>
+                            <div className="relative group">
+                                {coverImagePreview ? (
+                                    <div className="relative aspect-video rounded-xl overflow-hidden border border-border">
+                                        <img src={coverImagePreview} alt="Cover" className="w-full h-full object-cover" />
+                                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                                            <button
+                                                onClick={() => document.getElementById("cover-upload")?.click()}
+                                                className="p-2 rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors"
+                                            >
+                                                <Upload size={14} />
+                                            </button>
+                                            <button
+                                                onClick={handleRemoveCover}
+                                                className="p-2 rounded-full bg-red-500/80 hover:bg-red-500 text-white transition-colors"
+                                            >
+                                                <Trash2 size={14} />
+                                            </button>
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <label
+                                        htmlFor="cover-upload"
+                                        className="flex flex-col items-center justify-center aspect-video rounded-xl border-2 border-dashed border-border hover:border-sidebar-foreground/50 hover:bg-muted/50 transition-all cursor-pointer"
+                                    >
+                                        <div className="w-10 h-10 rounded-full bg-background border border-border flex items-center justify-center mb-2">
+                                            <Upload size={16} className="text-muted-foreground" />
+                                        </div>
+                                        <p className="text-xs text-muted-foreground font-medium">Upload Cover</p>
+                                    </label>
                                 )}
+                                <input
+                                    id="cover-upload"
+                                    type="file"
+                                    accept="image/*"
+                                    className="hidden"
+                                    onChange={handleCoverImageChange}
+                                    disabled={isUploading}
+                                />
                             </div>
-                        ) : (
-                            <label className="mt-1 rounded-xl border border-dashed border-border aspect-video flex flex-col items-center justify-center gap-2 text-muted-foreground/50 hover:border-sidebar-foreground/30 hover:text-muted-foreground transition-all cursor-pointer">
-                                <Upload size={24} />
-                                <span className="text-xs">Click to upload</span>
-                                <input type="file" accept="image/*" className="hidden" onChange={handleCoverImageChange} />
-                            </label>
-                        )}
+                        </div>
+                    </div>
+                </TabsContent>
+
+                <TabsContent value="stats" className="flex flex-col gap-6 flex-1 min-h-0 mt-0 data-[state=inactive]:hidden overflow-y-auto">
+                    {/* Stats Overview */}
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div className="bg-card rounded-xl border border-border p-5 flex flex-col gap-2">
+                            <div className="flex items-center gap-2 text-muted-foreground mb-1">
+                                <Eye size={16} />
+                                <span className="text-xs font-medium uppercase tracking-wider">Total Views</span>
+                            </div>
+                            <p className="text-3xl font-black text-foreground">{post.views}</p>
+                        </div>
+                        <div className="bg-card rounded-xl border border-border p-5 flex flex-col gap-2">
+                            <div className="flex items-center gap-2 text-muted-foreground mb-1">
+                                <MessageSquare size={16} />
+                                <span className="text-xs font-medium uppercase tracking-wider">Comments</span>
+                            </div>
+                            {/* We could pass comment count here if we had it, but CommentsSection fetches it. 
+                                For now, just show a placeholder or fetch it in the parent. 
+                                Since CommentsSection fetches its own data, we can leave this dynamic or empty for now. 
+                                Let's just show 'Manage below' or similar if we don't have the count readily available without refetching. 
+                                Actually, we can just omit the count or put a placeholder. 
+                            */}
+                            <p className="text-3xl font-black text-foreground">-</p>
+                        </div>
+                        <div className="bg-card rounded-xl border border-border p-5 flex flex-col gap-2">
+                            <div className="flex items-center gap-2 text-muted-foreground mb-1">
+                                <Tag size={16} />
+                                <span className="text-xs font-medium uppercase tracking-wider">Status</span>
+                            </div>
+                            <p className={cn("text-3xl font-black capitalize", post.status === "published" ? "text-primary" : "text-zinc-500")}>
+                                {post.status}
+                            </p>
+                        </div>
                     </div>
 
-
-                </div>
-            </div>
+                    {/* Comments Section */}
+                    <div className="bg-card rounded-[20px] border border-border p-6">
+                        <CommentsSection blogId={post.id} />
+                    </div>
+                </TabsContent>
+            </Tabs>
         </div>
     );
 }
