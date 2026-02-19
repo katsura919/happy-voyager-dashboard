@@ -35,7 +35,7 @@ export default function RootLayout({
           attribute="class"
           defaultTheme="system"
           enableSystem
-          themes={["light", "dark", "warm", "system"]}
+          themes={["light", "dark", "warm", "rose", "rose-dark", "system"]}
           disableTransitionOnChange
         >
           <TooltipProvider>
@@ -43,7 +43,7 @@ export default function RootLayout({
               {children}
             </Providers>
           </TooltipProvider>
-         <Toaster richColors/>
+          <Toaster richColors />
         </ThemeProvider>
 
       </body>
