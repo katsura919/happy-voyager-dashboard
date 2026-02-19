@@ -3,6 +3,7 @@ import { Geist } from "next/font/google";
 import { ThemeProvider } from "next-themes";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { Providers } from "@/components/providers";
+import { Toaster } from "sonner";
 import "./globals.css";
 
 const defaultUrl = process.env.VERCEL_URL
@@ -42,7 +43,9 @@ export default function RootLayout({
               {children}
             </Providers>
           </TooltipProvider>
+         <Toaster richColors/>
         </ThemeProvider>
+
       </body>
     </html>
   );

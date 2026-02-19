@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from "react";
 import { createClient } from "@/lib/supabase/client";
-import { User, Mail, Phone, Globe, Loader2, Check, AlertCircle } from "lucide-react";
+import { User, Mail, Phone, Globe, Loader2, Check } from "lucide-react";
+import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
 interface Profile {
@@ -14,7 +15,7 @@ interface Profile {
     avatar_url: string;
 }
 
-type SaveStatus = "idle" | "saving" | "success" | "error";
+type SaveStatus = "idle" | "saving" | "success";
 
 export function AccountSettingsForm() {
     const [profile, setProfile] = useState<Profile>({
@@ -26,7 +27,6 @@ export function AccountSettingsForm() {
         avatar_url: "",
     });
     const [saveStatus, setSaveStatus] = useState<SaveStatus>("idle");
-    const [errorMsg, setErrorMsg] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
@@ -51,7 +51,6 @@ export function AccountSettingsForm() {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setSaveStatus("saving");
-        setErrorMsg(null);
 
         try {
             const supabase = createClient();
@@ -68,11 +67,11 @@ export function AccountSettingsForm() {
 
             if (error) throw error;
             setSaveStatus("success");
+            toast.success("Profile updated successfully!");
             setTimeout(() => setSaveStatus("idle"), 3000);
         } catch (err: unknown) {
-            setErrorMsg(err instanceof Error ? err.message : "Something went wrong.");
-            setSaveStatus("error");
-            setTimeout(() => setSaveStatus("idle"), 4000);
+            setSaveStatus("idle");
+            toast.error(err instanceof Error ? err.message : "Something went wrong.");
         }
     };
 
@@ -174,8 +173,7 @@ export function AccountSettingsForm() {
             </FieldGroup>
 
             {/* Footer */}
-            <div className="flex items-center justify-between pt-2">
-                <StatusFeedback status={saveStatus} errorMsg={errorMsg} />
+            <div className="flex items-center justify-end pt-2">
                 <button
                     type="submit"
                     disabled={saveStatus === "saving"}
@@ -234,21 +232,4 @@ function FieldInput({
     );
 }
 
-function StatusFeedback({ status, errorMsg }: { status: SaveStatus; errorMsg: string | null }) {
-    if (status === "idle") return null;
-    if (status === "saving") return (
-        <p className="text-xs text-muted-foreground flex items-center gap-1.5">
-            <Loader2 size={12} className="animate-spin" /> Saving your changes…
-        </p>
-    );
-    if (status === "success") return (
-        <p className="text-xs text-green-400 flex items-center gap-1.5">
-            <Check size={12} /> Profile updated successfully!
-        </p>
-    );
-    return (
-        <p className="text-xs text-red-400 flex items-center gap-1.5">
-            <AlertCircle size={12} /> {errorMsg}
-        </p>
-    );
-}
+

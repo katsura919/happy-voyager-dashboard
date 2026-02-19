@@ -4,8 +4,9 @@ import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { Lock, Eye, EyeOff, Loader2, Check, AlertCircle, ShieldCheck } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { toast } from "sonner";
 
-type SaveStatus = "idle" | "saving" | "success" | "error";
+type SaveStatus = "idle" | "saving" | "success";
 
 export function PasswordChangeForm() {
     const [currentPassword, setCurrentPassword] = useState("");
@@ -15,22 +16,18 @@ export function PasswordChangeForm() {
     const [showNew, setShowNew] = useState(false);
     const [showConfirm, setShowConfirm] = useState(false);
     const [saveStatus, setSaveStatus] = useState<SaveStatus>("idle");
-    const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
     const passwordStrength = getPasswordStrength(newPassword);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        setErrorMsg(null);
 
         if (newPassword !== confirmPassword) {
-            setErrorMsg("New passwords do not match.");
-            setSaveStatus("error");
+            toast.error("New passwords do not match.");
             return;
         }
         if (newPassword.length < 8) {
-            setErrorMsg("Password must be at least 8 characters.");
-            setSaveStatus("error");
+            toast.error("Password must be at least 8 characters.");
             return;
         }
 
@@ -55,14 +52,14 @@ export function PasswordChangeForm() {
             if (error) throw error;
 
             setSaveStatus("success");
+            toast.success("Password changed successfully!");
             setCurrentPassword("");
             setNewPassword("");
             setConfirmPassword("");
             setTimeout(() => setSaveStatus("idle"), 4000);
         } catch (err: unknown) {
-            setErrorMsg(err instanceof Error ? err.message : "Something went wrong.");
-            setSaveStatus("error");
-            setTimeout(() => { setSaveStatus("idle"); setErrorMsg(null); }, 5000);
+            setSaveStatus("idle");
+            toast.error(err instanceof Error ? err.message : "Something went wrong.");
         }
     };
 
@@ -151,8 +148,7 @@ export function PasswordChangeForm() {
             )}
 
             {/* Footer */}
-            <div className="flex items-center justify-between pt-2">
-                <StatusFeedback status={saveStatus} errorMsg={errorMsg} />
+            <div className="flex items-center justify-end pt-2">
                 <button
                     type="submit"
                     disabled={saveStatus === "saving"}
@@ -233,21 +229,4 @@ function getPasswordStrength(password: string) {
     return { score: 4, label: "Strong", color: "bg-green-400", textColor: "text-green-400" };
 }
 
-function StatusFeedback({ status, errorMsg }: { status: SaveStatus; errorMsg: string | null }) {
-    if (status === "idle") return null;
-    if (status === "saving") return (
-        <p className="text-xs text-muted-foreground flex items-center gap-1.5">
-            <Loader2 size={12} className="animate-spin" /> Updating password…
-        </p>
-    );
-    if (status === "success") return (
-        <p className="text-xs text-green-400 flex items-center gap-1.5">
-            <Check size={12} /> Password changed successfully!
-        </p>
-    );
-    return (
-        <p className="text-xs text-red-400 flex items-center gap-1.5">
-            <AlertCircle size={12} /> {errorMsg}
-        </p>
-    );
-}
+
