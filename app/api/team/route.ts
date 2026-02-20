@@ -48,7 +48,6 @@ export async function GET() {
 
 export async function POST(req: Request) {
   const supabase = await createClient();
-  const siteUrl = new URL(req.url).origin;
   const {
     data: { user },
   } = await supabase.auth.getUser();
@@ -72,21 +71,124 @@ export async function POST(req: Request) {
     const adminClient = createAdminClient();
     const adminAuthClient = adminClient.auth.admin;
 
-    const { data: inviteData, error: inviteError } =
-      await adminAuthClient.inviteUserByEmail(email, {
-        redirectTo: `${siteUrl}/auth/update-password`,
+    const generatedPassword =
+      Math.random().toString(36).slice(-8) +
+      Math.random().toString(36).slice(-8) +
+      "!A1";
+
+    const { data: newUser, error: createError } =
+      await adminAuthClient.createUser({
+        email,
+        password: generatedPassword,
+        email_confirm: true,
       });
 
-    if (inviteError) {
-      return NextResponse.json({ error: inviteError.message }, { status: 400 });
+    if (createError) {
+      return NextResponse.json({ error: createError.message }, { status: 400 });
     }
 
-    if (inviteData?.user) {
+    if (newUser?.user) {
       await adminClient.from("user_roles").upsert({
-        id: inviteData.user.id,
+        id: newUser.user.id,
         role: role || "member",
       });
     }
+
+    return NextResponse.json({ success: true, password: generatedPassword });
+  } catch (err: any) {
+    return NextResponse.json(
+      { error: err.message || "Internal Server Error" },
+      { status: 500 },
+    );
+  }
+}
+
+export async function PATCH(req: Request) {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const { data: roleData } = await supabase
+    .from("user_roles")
+    .select("role")
+    .eq("id", user.id)
+    .single();
+
+  if (roleData?.role !== "admin") {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
+
+  try {
+    const { id, role } = await req.json();
+
+    if (id === user.id) {
+      return NextResponse.json(
+        { error: "You cannot change your own role" },
+        { status: 400 },
+      );
+    }
+
+    const adminClient = createAdminClient();
+    const { error: upsertError } = await adminClient
+      .from("user_roles")
+      .upsert({ id, role });
+
+    if (upsertError) {
+      return NextResponse.json({ error: upsertError.message }, { status: 400 });
+    }
+
+    return NextResponse.json({ success: true });
+  } catch (err: any) {
+    return NextResponse.json(
+      { error: err.message || "Internal Server Error" },
+      { status: 500 },
+    );
+  }
+}
+
+export async function DELETE(req: Request) {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const { data: roleData } = await supabase
+    .from("user_roles")
+    .select("role")
+    .eq("id", user.id)
+    .single();
+
+  if (roleData?.role !== "admin") {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
+
+  try {
+    const { id } = await req.json();
+
+    if (id === user.id) {
+      return NextResponse.json(
+        { error: "You cannot delete your own account" },
+        { status: 400 },
+      );
+    }
+
+    const adminClient = createAdminClient();
+    const { error: deleteError } = await adminClient.auth.admin.deleteUser(id);
+
+    if (deleteError) {
+      return NextResponse.json({ error: deleteError.message }, { status: 400 });
+    }
+
+    await adminClient.from("user_roles").delete().eq("id", id);
 
     return NextResponse.json({ success: true });
   } catch (err: any) {
