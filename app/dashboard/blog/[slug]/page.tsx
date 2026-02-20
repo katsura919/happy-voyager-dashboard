@@ -41,7 +41,7 @@ const CATEGORIES = [
 function EditBlogPageInner() {
     const router = useRouter();
     const params = useParams();
-    const id = params.id as string;
+    const slug = params.slug as string;
     const queryClient = useQueryClient();
 
     const editorRef = useRef<BlogEditorHandle>(null);
@@ -61,15 +61,15 @@ function EditBlogPageInner() {
 
     // ── fetch post ───────────────────────────────────────────────────────────
     const { data: post, isLoading, isError } = useQuery({
-        queryKey: ["blog-post", id],
-        queryFn: () => getBlogPost(id),
-        enabled: !!id,
+        queryKey: ["blog-post", slug],
+        queryFn: () => getBlogPost(slug),
+        enabled: !!slug,
     });
 
     const { data: comments } = useQuery({
-        queryKey: ["blog-comments", id],
-        queryFn: () => fetchBlogComments(id),
-        enabled: !!id,
+        queryKey: ["blog-comments", post?.id],
+        queryFn: () => fetchBlogComments(post!.id),
+        enabled: !!post?.id,
     });
 
     // Populate form once post is loaded
@@ -104,7 +104,7 @@ function EditBlogPageInner() {
             toast.success(updated.status === "published" ? "Post published!" : "Draft saved!");
             // Refresh the list page cache
             queryClient.invalidateQueries({ queryKey: ["blog-posts"] });
-            queryClient.setQueryData(["blog-post", id], updated);
+            queryClient.setQueryData(["blog-post", slug], updated);
         },
         onError: (error: Error) => {
             toast.error(error.message ?? "Something went wrong");
@@ -113,7 +113,8 @@ function EditBlogPageInner() {
 
     const { mutate: deletePost, isPending: isDeleting } = useMutation({
         mutationFn: async () => {
-            await deleteBlogPost(id);
+            if (!post) return;
+            await deleteBlogPost(post.id);
         },
         onSuccess: () => {
             toast.success("Post deleted");
@@ -154,9 +155,10 @@ function EditBlogPageInner() {
     const handleSave = () => {
         if (!title.trim()) { toast.error("Please add a title before saving"); return; }
         if (isUploading) { toast.error("Please wait for the image to finish uploading"); return; }
+        if (!post) return;
 
         savePost({
-            id,
+            id: post.id,
             title,
             excerpt,
             content: editorRef.current?.getHTML() ?? "",

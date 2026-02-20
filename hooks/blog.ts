@@ -71,9 +71,9 @@ export async function fetchBlogPosts(params?: FetchBlogPostsParams): Promise<Pag
 }
 
 /**
- * Fetch a single blog post by ID directly from Supabase.
+ * Fetch a single blog post by slug directly from Supabase.
  */
-export async function getBlogPost(id: string): Promise<BlogPost> {
+export async function getBlogPost(slug: string): Promise<BlogPost> {
     const supabase = createClient();
 
     const { data: { user }, error: authError } = await supabase.auth.getUser();
@@ -82,7 +82,7 @@ export async function getBlogPost(id: string): Promise<BlogPost> {
     const { data, error } = await supabase
         .from("blog_posts")
         .select("*")
-        .eq("id", id)
+        .eq("slug", slug)
         .single();
 
     if (error) throw new Error(error.message);

@@ -235,7 +235,7 @@ export default function BlogPage() {
 function BlogCard({ post }: { post: BlogPost }) {
     return (
         <Link
-            href={`/dashboard/blog/${post.id}`}
+            href={`/dashboard/blog/${post.slug}`}
             className="bg-card rounded-[24px] border border-border overflow-hidden group hover:border-sidebar-foreground/30 transition-all duration-300 flex flex-col"
         >
             <div className="relative h-44 overflow-hidden shrink-0 bg-zinc-800">
@@ -315,7 +315,7 @@ function BlogTable({ posts }: { posts: BlogPost[] }) {
                     {posts.map((post, i) => (
                         <tr
                             key={post.id}
-                            onClick={() => window.location.href = `/dashboard/blog/${post.id}`}
+                            onClick={() => window.location.href = `/dashboard/blog/${post.slug}`}
                             className={cn("border-b border-border hover:bg-muted/50 transition-colors cursor-pointer", i === posts.length - 1 && "border-b-0")}
                         >
                             <td className="px-6 py-4">
