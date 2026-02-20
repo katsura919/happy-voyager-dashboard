@@ -1,14 +1,15 @@
 "use client";
 
 import { useState } from "react";
-import { UserCircle, KeyRound } from "lucide-react";
+import { UserCircle, KeyRound, Users } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { AccountSettingsForm } from "./account-settings-form";
 import { PasswordChangeForm } from "./password-change-form";
+import { TeamManagementForm } from "./team-management-form";
 
-type Tab = "account" | "password";
+type Tab = "account" | "password" | "team";
 
-const TABS: { id: Tab; label: string; icon: React.ElementType; description: string }[] = [
+const TABS: { id: Tab; label: string; icon: React.ElementType; description: string; adminOnly?: boolean }[] = [
     {
         id: "account",
         label: "Account",
@@ -21,17 +22,26 @@ const TABS: { id: Tab; label: string; icon: React.ElementType; description: stri
         icon: KeyRound,
         description: "Change your password and manage security",
     },
+    {
+        id: "team",
+        label: "Team",
+        icon: Users,
+        description: "Manage team members and roles",
+        adminOnly: true,
+    },
 ];
 
-export function SettingsTabs() {
+export function SettingsTabs({ userRole }: { userRole: string }) {
     const [activeTab, setActiveTab] = useState<Tab>("account");
-    const current = TABS.find((t) => t.id === activeTab)!;
+
+    const visibleTabs = TABS.filter((tab) => !tab.adminOnly || userRole === "admin");
+    const current = visibleTabs.find((t) => t.id === activeTab) || visibleTabs[0];
 
     return (
         <div className="bg-card rounded-[28px] border border-white/5 overflow-hidden">
             {/* Tab Bar */}
             <div className="flex gap-1 p-2 border-b border-white/5 bg-background/20">
-                {TABS.map((tab) => (
+                {visibleTabs.map((tab) => (
                     <button
                         key={tab.id}
                         onClick={() => setActiveTab(tab.id)}
@@ -63,6 +73,7 @@ export function SettingsTabs() {
                 <div key={activeTab} className="animate-in fade-in slide-in-from-bottom-2 duration-200">
                     {activeTab === "account" && <AccountSettingsForm />}
                     {activeTab === "password" && <PasswordChangeForm />}
+                    {activeTab === "team" && <TeamManagementForm />}
                 </div>
             </div>
         </div>

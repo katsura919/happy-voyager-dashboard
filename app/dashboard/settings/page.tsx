@@ -1,6 +1,7 @@
 import { Suspense } from "react";
 import { SettingsTabs } from "@/components/dashboard/settings/settings-tabs";
 import { Settings } from "lucide-react";
+import { createClient } from "@/lib/supabase/server";
 
 export default function SettingsPage() {
     return (
@@ -41,8 +42,27 @@ export default function SettingsPage() {
                     </div>
                 }
             >
-                <SettingsTabs />
+                <SettingsTabsWrapper />
             </Suspense>
         </div>
     );
+}
+
+async function SettingsTabsWrapper() {
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+
+    let userRole = "member";
+    if (user) {
+        const { data: roleData } = await supabase
+            .from("user_roles")
+            .select("role")
+            .eq("id", user.id)
+            .single();
+        if (roleData) {
+            userRole = roleData.role;
+        }
+    }
+
+    return <SettingsTabs userRole={userRole} />;
 }
