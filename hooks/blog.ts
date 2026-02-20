@@ -225,3 +225,20 @@ export async function createBlogPost(payload: CreateBlogPostPayload): Promise<Bl
 
     return data as BlogPost;
 }
+
+/**
+ * Delete a blog post.
+ */
+export async function deleteBlogPost(id: string): Promise<void> {
+    const supabase = createClient();
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    if (authError || !user) throw new Error("Unauthorized");
+
+    const { error } = await supabase
+        .from("blog_posts")
+        .delete()
+        .eq("id", id)
+        .eq("author_id", user.id);
+
+    if (error) throw new Error(error.message);
+}

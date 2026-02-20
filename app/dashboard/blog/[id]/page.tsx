@@ -6,7 +6,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRouter, useParams } from "next/navigation";
 import { toast } from "sonner";
 import { BlogEditor, BlogEditorHandle } from "@/components/blog/blog-editor";
-import { getBlogPost, updateBlogPost } from "@/hooks/blog";
+import { getBlogPost, updateBlogPost, deleteBlogPost, fetchBlogComments } from "@/hooks/blog";
 import { uploadToCloudinary } from "@/hooks/cloudinary";
 import {
     ArrowLeft, Save, Tag, ImageIcon,
@@ -27,6 +27,10 @@ import {
     DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+    AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+    AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { cn } from "@/lib/utils";
 
 const CATEGORIES = [
@@ -59,6 +63,12 @@ function EditBlogPageInner() {
     const { data: post, isLoading, isError } = useQuery({
         queryKey: ["blog-post", id],
         queryFn: () => getBlogPost(id),
+        enabled: !!id,
+    });
+
+    const { data: comments } = useQuery({
+        queryKey: ["blog-comments", id],
+        queryFn: () => fetchBlogComments(id),
         enabled: !!id,
     });
 
@@ -98,6 +108,20 @@ function EditBlogPageInner() {
         },
         onError: (error: Error) => {
             toast.error(error.message ?? "Something went wrong");
+        },
+    });
+
+    const { mutate: deletePost, isPending: isDeleting } = useMutation({
+        mutationFn: async () => {
+            await deleteBlogPost(id);
+        },
+        onSuccess: () => {
+            toast.success("Post deleted");
+            queryClient.invalidateQueries({ queryKey: ["blog-posts"] });
+            router.push("/dashboard/blog");
+        },
+        onError: (error: Error) => {
+            toast.error(error?.message || "Failed to delete post");
         },
     });
 
@@ -191,8 +215,8 @@ function EditBlogPageInner() {
                                 {status}
                             </span>
                             <div className="h-3 w-px bg-border" />
-                            <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-medium">
-                                Created {new Date(post.created_at).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
+                            <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-medium flex items-center gap-1">
+                                <MessageSquare size={10} /> {comments?.length || 0} comments
                             </p>
                             <div className="h-3 w-px bg-border" />
                             <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-medium">
@@ -210,6 +234,35 @@ function EditBlogPageInner() {
                     </div>
                 </div>
                 <div className="flex items-center gap-2">
+                    <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                            <button
+                                disabled={isDeleting || isPending || isUploading}
+                                className="w-8 h-8 flex items-center justify-center rounded-full bg-red-500/10 hover:bg-red-500/20 text-red-500 transition-colors disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-red-500/20"
+                                title="Delete Post"
+                            >
+                                {isDeleting ? <Loader2 size={16} className="animate-spin" /> : <Trash2 size={16} />}
+                            </button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                            <AlertDialogHeader>
+                                <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                    This action cannot be undone. This will permanently delete the blog post "{title}".
+                                </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                <AlertDialogAction
+                                    onClick={() => deletePost()}
+                                    className="bg-red-500 hover:bg-red-600 focus:ring-red-500 text-white"
+                                >
+                                    {isDeleting ? "Deleting..." : "Delete"}
+                                </AlertDialogAction>
+                            </AlertDialogFooter>
+                        </AlertDialogContent>
+                    </AlertDialog>
+
                     <div className="flex items-center bg-card border border-border rounded-full p-1 pr-2">
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>
