@@ -39,7 +39,6 @@ export async function fetchBlogPosts(params?: FetchBlogPostsParams): Promise<Pag
     let query = supabase
         .from("blog_posts")
         .select("*", { count: "exact" })
-        .eq("author_id", user.id)
         .order("created_at", { ascending: false });
 
     if (params?.status === "draft" || params?.status === "published") {
@@ -84,7 +83,6 @@ export async function getBlogPost(id: string): Promise<BlogPost> {
         .from("blog_posts")
         .select("*")
         .eq("id", id)
-        .eq("author_id", user.id)
         .single();
 
     if (error) throw new Error(error.message);
