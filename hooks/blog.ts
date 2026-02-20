@@ -71,6 +71,32 @@ export async function fetchBlogPosts(params?: FetchBlogPostsParams): Promise<Pag
 }
 
 /**
+ * Fetch post counts grouped by category.
+ */
+export async function fetchPostCountsByCategory(): Promise<{ category: string; count: number }[]> {
+    const supabase = createClient();
+
+    // Fetch only categories to minimize data transfer
+    const { data, error } = await supabase
+        .from("blog_posts")
+        .select("category");
+
+    if (error) throw new Error(error.message);
+
+    // Group and count
+    const counts: Record<string, number> = {};
+    for (const post of data || []) {
+        const cat = post.category || "Uncategorized";
+        counts[cat] = (counts[cat] || 0) + 1;
+    }
+
+    // Convert to array and sort by count descending
+    return Object.entries(counts)
+        .map(([category, count]) => ({ category, count }))
+        .sort((a, b) => b.count - a.count);
+}
+
+/**
  * Fetch a single blog post by slug directly from Supabase.
  */
 export async function getBlogPost(slug: string): Promise<BlogPost> {
