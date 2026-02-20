@@ -1,98 +1,131 @@
 "use client";
 
-import { MoreHorizontal } from 'lucide-react';
-import { cn } from "@/lib/utils";
-
-interface PillData {
-    id: number;
-    topVal: number;
-    bottomVal: number;
-    topColor: 'white' | 'primary' | 'secondary';
-    bottomColor: 'white' | 'primary' | 'secondary';
-    heightPercent: number; // For the pill height relative to container
-}
-
-const mockData: PillData[] = [
-    { id: 1, topVal: 52, bottomVal: 81, topColor: 'white', bottomColor: 'secondary', heightPercent: 60 },
-    { id: 2, topVal: 96, bottomVal: 25, topColor: 'primary', bottomColor: 'secondary', heightPercent: 90 },
-    { id: 3, topVal: 48, bottomVal: 51, topColor: 'primary', bottomColor: 'white', heightPercent: 50 },
-    { id: 4, topVal: 80, bottomVal: 49, topColor: 'primary', bottomColor: 'secondary', heightPercent: 70 },
-    { id: 5, topVal: 34, bottomVal: 67, topColor: 'secondary', bottomColor: 'primary', heightPercent: 40 },
-    { id: 6, topVal: 92, bottomVal: 28, topColor: 'primary', bottomColor: 'white', heightPercent: 95 },
-    { id: 7, topVal: 58, bottomVal: 20, topColor: 'primary', bottomColor: 'secondary', heightPercent: 65 },
-    { id: 8, topVal: 84, bottomVal: 39, topColor: 'secondary', bottomColor: 'primary', heightPercent: 85 },
-    { id: 9, topVal: 36, bottomVal: 72, topColor: 'white', bottomColor: 'secondary', heightPercent: 45 },
-];
+import { useQuery } from "@tanstack/react-query";
+import { Eye, Loader2, FileText, ChevronRight } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { Badge } from "@/components/ui/badge";
+import {
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { fetchTopBlogsByViews } from "@/hooks/blog";
 
 export function ProductPillWidget() {
-    return (
-        <div className="bg-card rounded-[32px] p-6 flex flex-col h-full border border-white/5 shadow-sm">
-            <div className="flex justify-between items-start mb-8">
-                <h3 className="text-muted-foreground font-bold text-xs tracking-wider uppercase">Product</h3>
-                <button className="text-muted-foreground hover:text-foreground transition-colors">
-                    <MoreHorizontal size={20} />
-                </button>
-            </div>
+  const router = useRouter();
+  const {
+    data: posts,
+    isLoading,
+    isError,
+  } = useQuery({
+    queryKey: ["top-blogs-by-views"],
+    queryFn: () => fetchTopBlogsByViews(8),
+  });
 
-            {/* Chart Area */}
-            <div className="flex-1 flex items-center justify-between px-2 relative min-h-[200px]">
-                {mockData.map((item) => (
-                    <PillColumn key={item.id} data={item} />
-                ))}
-            </div>
+  const totalViews = posts?.reduce((sum, p) => sum + (p.views ?? 0), 0) ?? 0;
+  const maxViews =
+    posts && posts.length > 0 ? Math.max(...posts.map((p) => p.views ?? 0)) : 1;
 
-            {/* Footer Legend */}
-            <div className="flex items-center justify-between mt-8 pt-4 border-t border-white/5">
-                <div className="flex items-center gap-6">
-                    <LegendItem color="bg-foreground" label="Resources" />
-                    <LegendItem color="bg-primary" label="Valid" />
-                    <LegendItem color="bg-secondary" label="Invalid" />
-                </div>
-                <div className="text-sm font-medium text-muted-foreground">
-                    Total: <span className="text-foreground ml-1">1,012</span>
-                </div>
-            </div>
+  return (
+    <Card className="rounded-[32px] flex flex-col h-full">
+      <CardHeader>
+        <div className="flex items-center justify-between">
+          <CardTitle className="text-muted-foreground font-bold text-xs tracking-wider uppercase">
+            Top Posts by Views
+          </CardTitle>
+          <Eye size={14} className="text-muted-foreground" />
         </div>
-    );
+      </CardHeader>
+
+      <CardContent className="flex-1 flex flex-col gap-1 overflow-y-auto">
+        {isLoading ? (
+          <div className="flex items-center justify-center h-full">
+            <Loader2 className="animate-spin w-6 h-6 opacity-40" />
+          </div>
+        ) : isError || !posts || posts.length === 0 ? (
+          <div className="flex flex-col items-center justify-center h-full gap-2 text-muted-foreground">
+            <FileText className="w-8 h-8 opacity-20" />
+            <p className="text-xs">No posts yet</p>
+          </div>
+        ) : (
+          posts.map((post) => {
+            const barWidth = Math.max(
+              8,
+              Math.round(((post.views ?? 0) / maxViews) * 100),
+            );
+            return (
+              <button
+                key={post.id}
+                onClick={() =>
+                  post.slug && router.push(`/dashboard/blog/${post.slug}`)
+                }
+                disabled={!post.slug}
+                className="group flex items-center gap-3 rounded-2xl px-3 py-2.5 hover:bg-white/5 transition-colors text-left w-full"
+              >
+                {/* View bar */}
+                <div className="relative w-1 self-stretch rounded-full bg-white/5 flex-shrink-0">
+                  <div
+                    className={
+                      post.status === "published"
+                        ? "absolute bottom-0 left-0 right-0 rounded-full bg-primary"
+                        : "absolute bottom-0 left-0 right-0 rounded-full bg-secondary"
+                    }
+                    style={{ height: `${barWidth}%` }}
+                  />
+                </div>
+
+                {/* Title + meta */}
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium text-foreground truncate leading-snug">
+                    {post.title}
+                  </p>
+                  <p className="text-[10px] text-muted-foreground mt-0.5 truncate">
+                    {post.category || "Uncategorized"}
+                  </p>
+                </div>
+
+                {/* Views + status */}
+                <div className="flex items-center gap-2 flex-shrink-0">
+                  <div className="flex items-center gap-1 text-muted-foreground">
+                    <Eye size={11} />
+                    <span className="text-xs">
+                      {(post.views ?? 0) >= 1000
+                        ? `${((post.views ?? 0) / 1000).toFixed(1)}k`
+                        : (post.views ?? 0)}
+                    </span>
+                  </div>
+                  <Badge
+                    variant={
+                      post.status === "published" ? "default" : "secondary"
+                    }
+                    className="text-[9px] px-1.5 py-0 h-4"
+                  >
+                    {post.status}
+                  </Badge>
+                  <ChevronRight
+                    size={12}
+                    className="text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity"
+                  />
+                </div>
+              </button>
+            );
+          })
+        )}
+      </CardContent>
+
+      <CardFooter className="flex items-center justify-between border-t border-white/5 pt-4">
+        <span className="text-xs text-muted-foreground">
+          Showing top {posts?.length ?? 0} posts
+        </span>
+        <span className="text-sm font-medium text-muted-foreground">
+          Total views:{" "}
+          <span className="text-foreground ml-1">
+            {totalViews.toLocaleString()}
+          </span>
+        </span>
+      </CardFooter>
+    </Card>
+  );
 }
-
-const PillColumn = ({ data }: { data: PillData }) => {
-    const getColorClass = (c: string) => {
-        switch (c) {
-            case 'primary': return 'bg-primary text-primary-foreground';
-            case 'secondary': return 'bg-secondary text-secondary-foreground';
-            default: return 'bg-foreground text-background';
-        }
-    };
-
-    return (
-        <div className="flex flex-col items-center justify-center h-full gap-2 relative group w-10">
-            {/* Dashed background line */}
-            <div className="absolute inset-y-0 w-px border-l border-dashed border-zinc-700/50 dark:border-zinc-700 h-full -z-10 group-hover:border-zinc-500 transition-colors" />
-
-            {/* Container for pills ensuring they are vertically centered but spaced based on heightPercent */}
-            <div
-                className="flex flex-col justify-between items-center w-full transition-all duration-500 ease-out"
-                style={{ height: `${data.heightPercent}%` }}
-            >
-                <div className={cn("w-10 h-14 rounded-full flex items-center justify-center text-xs font-bold shadow-lg", getColorClass(data.topColor))}>
-                    {data.topVal}
-                </div>
-
-                {/* Middle dot */}
-                <div className={cn("w-2 h-2 rounded-full", data.topColor === 'secondary' ? 'bg-secondary' : 'bg-primary')} />
-
-                <div className={cn("w-10 h-10 rounded-full flex items-center justify-center text-xs font-bold shadow-lg", getColorClass(data.bottomColor))}>
-                    {data.bottomVal}
-                </div>
-            </div>
-        </div>
-    );
-};
-
-const LegendItem = ({ color, label }: { color: string; label: string }) => (
-    <div className="flex items-center gap-2">
-        <div className={cn("w-3 h-3 rounded-full border-[3px] border-card outline outline-1 outline-white/20", color)} />
-        <span className="text-xs text-muted-foreground">{label}</span>
-    </div>
-);
