@@ -6,6 +6,8 @@ import { cn } from "@/lib/utils";
 import { AccountSettingsForm } from "./account-settings-form";
 import { PasswordChangeForm } from "./password-change-form";
 import { TeamManagementForm } from "./team-management-form";
+import { useSearchParams } from "next/navigation";
+import { useEffect } from "react";
 
 type Tab = "account" | "password" | "team";
 
@@ -32,9 +34,18 @@ const TABS: { id: Tab; label: string; icon: React.ElementType; description: stri
 ];
 
 export function SettingsTabs({ userRole }: { userRole: string }) {
-    const [activeTab, setActiveTab] = useState<Tab>("account");
+    const searchParams = useSearchParams();
+    const urlTab = searchParams.get("tab") as Tab | null;
 
     const visibleTabs = TABS.filter((tab) => !tab.adminOnly || userRole === "admin");
+    const [activeTab, setActiveTab] = useState<Tab>("account");
+
+    useEffect(() => {
+        if (urlTab && visibleTabs.some(t => t.id === urlTab)) {
+            setActiveTab(urlTab);
+        }
+    }, [urlTab, visibleTabs]);
+
     const current = visibleTabs.find((t) => t.id === activeTab) || visibleTabs[0];
 
     return (

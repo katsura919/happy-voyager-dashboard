@@ -83,8 +83,7 @@ export function PasswordChangeForm() {
                 show={showCurrent}
                 onToggle={() => setShowCurrent((v) => !v)}
                 onChange={(e) => setCurrentPassword(e.target.value)}
-                placeholder="Enter your current password"
-                required
+                placeholder="Required unless this is your first time"
             />
 
             {/* Divider */}
