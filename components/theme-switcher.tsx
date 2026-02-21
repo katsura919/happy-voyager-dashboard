@@ -15,7 +15,6 @@ import { useEffect, useState } from "react";
 const ICON_SIZE = 16;
 
 const themes = [
-  { value: "light", label: "Light", Icon: Sun },
   { value: "dark", label: "Dark", Icon: Moon },
   { value: "warm", label: "Warm", Icon: Palette },
   { value: "rose", label: "Rose", Icon: Palette },
@@ -30,7 +29,7 @@ const ThemeSwitcher = () => {
   useEffect(() => { setMounted(true); }, []);
   if (!mounted) return null;
 
-  const current = themes.find((t) => t.value === theme) ?? themes[3];
+  const current = themes.find((t) => t.value === theme) ?? themes[0];
   const Icon = current.Icon;
 
   return (

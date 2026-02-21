@@ -33,9 +33,9 @@ export default function RootLayout({
 
         <ThemeProvider
           attribute="class"
-          defaultTheme="system"
+          defaultTheme="dark"
           enableSystem
-          themes={["light", "dark", "warm", "rose", "rose-dark", "system"]}
+          themes={["dark", "warm", "rose", "rose-dark", "system"]}
           disableTransitionOnChange
         >
           <TooltipProvider>
