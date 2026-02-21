@@ -16,10 +16,9 @@ const ICON_SIZE = 16;
 
 const themes = [
   { value: "dark", label: "Dark", Icon: Moon },
-  { value: "warm", label: "Warm", Icon: Palette },
-  { value: "rose", label: "Rose", Icon: Palette },
-  { value: "rose-dark", label: "Rose Dark", Icon: Palette },
-  { value: "system", label: "System", Icon: Laptop },
+  { value: "warm", label: "Cyberpunk", Icon: Palette },
+  { value: "rose", label: "Modern", Icon: Palette },
+  { value: "rose-dark", label: "Rose", Icon: Palette },
 ];
 
 const ThemeSwitcher = () => {

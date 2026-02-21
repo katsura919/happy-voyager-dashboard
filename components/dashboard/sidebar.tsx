@@ -24,8 +24,6 @@ import Image from "next/image";
 const sidebarItems = [
   { title: "Dashboard", href: "/dashboard", icon: Heart },
   { title: "Blog", href: "/dashboard/blog", icon: BookOpen },
-  { title: "Calendar", href: "/dashboard/calendar", icon: Calendar },
-  { title: "Diamond", href: "/dashboard/diamond", icon: Diamond },
   { title: "Settings", href: "/dashboard/settings", icon: Settings },
 ];
 
