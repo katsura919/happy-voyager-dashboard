@@ -1,10 +1,9 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { BookOpen, FileText, Loader2 } from "lucide-react";
-import { ResponsiveContainer, LineChart, Line, Tooltip } from "recharts";
+import { Loader2, ArrowUpRight, TrendingUp } from "lucide-react";
 import { fetchBlogPostStats } from "@/hooks/blog";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 
 export function CustomerWidget() {
   const { data, isLoading } = useQuery({
@@ -12,50 +11,64 @@ export function CustomerWidget() {
     queryFn: fetchBlogPostStats,
   });
 
-  return (
-    <Card className="rounded-[32px]">
-      <CardHeader className="pb-2">
-        <CardTitle className="text-muted-foreground font-bold text-xs tracking-wider uppercase">
-          Blog Posts
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="flex-1 flex flex-col">
-        {isLoading ? (
-          <div className="flex items-center justify-center flex-1">
+  if (isLoading) {
+    return (
+      <>
+        <Card className="rounded-[32px] bg-primary text-primary-foreground border-none">
+          <CardContent className="p-6 flex items-center justify-center h-full min-h-[160px]">
             <Loader2 className="animate-spin w-6 h-6 opacity-40" />
-          </div>
-        ) : (
-          <>
-            <div className="flex-1 flex items-center justify-center">
-              <div className="flex gap-10">
-                <div>
-                  <div className="flex items-center gap-1.5 mb-1">
-                    <BookOpen size={13} className="text-primary" />
-                    <span className="text-3xl font-bold text-foreground">
-                      {data?.published ?? 0}
-                    </span>
-                  </div>
-                  <p className="text-[10px] text-muted-foreground font-medium uppercase tracking-wide">
-                    Published
-                  </p>
-                </div>
-                <div>
-                  <div className="flex items-center gap-1.5 mb-1">
-                    <FileText size={13} className="text-secondary" />
-                    <span className="text-3xl font-bold text-foreground">
-                      {data?.draft ?? 0}
-                    </span>
-                  </div>
-                  <p className="text-[10px] text-muted-foreground font-medium uppercase tracking-wide">
-                    Drafts
-                  </p>
-                </div>
-              </div>
-            </div>
+          </CardContent>
+        </Card>
+        <Card className="rounded-[32px] border">
+          <CardContent className="p-6 flex items-center justify-center h-full min-h-[160px]">
+            <Loader2 className="animate-spin w-6 h-6 opacity-40 text-muted-foreground" />
+          </CardContent>
+        </Card>
+      </>
+    );
+  }
 
-          </>
-        )}
-      </CardContent>
-    </Card>
+  return (
+    <>
+      <Card className="rounded-[32px] bg-primary text-primary-foreground border-none">
+        <CardContent className="p-6 flex flex-col justify-between h-full min-h-[160px]">
+          <div className="flex justify-between items-start">
+            <span className="text-sm font-medium">Published Blogs</span>
+            <div className="w-8 h-8 rounded-full bg-white text-primary flex items-center justify-center">
+              <ArrowUpRight size={16} />
+            </div>
+          </div>
+          <div className="mt-4 mb-2 text-4xl font-bold">
+            {data?.published ?? 0}
+          </div>
+          <div className="flex items-center gap-2 mt-auto text-xs text-primary-foreground/80">
+            <div className="flex items-center justify-center w-5 h-5 rounded bg-primary-foreground/20">
+              <TrendingUp size={12} />
+            </div>
+            <span>Increased from last month</span>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card className="rounded-[32px] border">
+        <CardContent className="p-6 flex flex-col justify-between h-full min-h-[160px]">
+          <div className="flex justify-between items-start">
+            <span className="text-sm font-medium text-foreground">Draft Blogs</span>
+            <div className="w-8 h-8 rounded-full border border-border flex items-center justify-center text-muted-foreground">
+              <ArrowUpRight size={16} />
+            </div>
+          </div>
+          <div className="mt-4 mb-2 text-4xl font-bold text-foreground">
+            {data?.draft ?? 0}
+          </div>
+          <div className="flex items-center gap-2 mt-auto text-xs text-muted-foreground">
+            <div className="flex items-center justify-center w-5 h-5 rounded border border-border text-primary">
+              <TrendingUp size={12} />
+            </div>
+            <span>Increased from last month</span>
+          </div>
+        </CardContent>
+      </Card>
+    </>
   );
 }

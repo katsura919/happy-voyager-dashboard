@@ -35,7 +35,7 @@ export function ProductPillWidget() {
           <CardTitle className="text-muted-foreground font-bold text-xs tracking-wider uppercase">
             Top Posts by Views
           </CardTitle>
-          <Eye size={14} className="text-muted-foreground" />
+       
         </div>
       </CardHeader>
 
@@ -64,17 +64,7 @@ export function ProductPillWidget() {
                 disabled={!post.slug}
                 className="group flex items-center gap-3 rounded-2xl px-3 py-2.5 hover:bg-white/5 transition-colors text-left w-full"
               >
-                {/* View bar */}
-                <div className="relative w-1 self-stretch rounded-full bg-white/5 flex-shrink-0">
-                  <div
-                    className={
-                      post.status === "published"
-                        ? "absolute bottom-0 left-0 right-0 rounded-full bg-primary"
-                        : "absolute bottom-0 left-0 right-0 rounded-full bg-secondary"
-                    }
-                    style={{ height: `${barWidth}%` }}
-                  />
-                </div>
+
 
                 {/* Title + meta */}
                 <div className="flex-1 min-w-0">

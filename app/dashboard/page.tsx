@@ -7,24 +7,22 @@ export default function DashboardPage() {
   return (
     <div className="flex flex-col gap-6">
       <h1 className="text-2xl font-bold tracking-tight">Overview</h1>
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        {/* Left Column (Stats + Pill Chart) */}
-        <div className="lg:col-span-5 flex flex-col gap-6">
-          {/* Top Stats Row */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 h-auto md:h-[150px]">
-            <CustomerWidget />
-            <ProductDotWidget />
-          </div>
 
-          {/* Bottom Large Chart */}
-          <div className="flex-1 min-h-[350px]">
-            <ProductPillWidget />
-          </div>
+      {/* Top Stats Row */}
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
+        <CustomerWidget />
+        <ProductDotWidget />
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        {/* Left Column (Category Chart) */}
+        <div className="lg:col-span-7 h-full min-h-[400px]">
+          <CategoryBarChartWidget />
         </div>
 
-        {/* Right Column (Category Chart) */}
-        <div className="lg:col-span-7 h-full min-h-[600px] lg:min-h-auto">
-          <CategoryBarChartWidget />
+        {/* Right Column (Pill Chart) */}
+        <div className="lg:col-span-5 h-full min-h-[400px]">
+          <ProductPillWidget />
         </div>
       </div>
     </div>
