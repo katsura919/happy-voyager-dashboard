@@ -30,22 +30,22 @@ export function CustomerWidget() {
 
   return (
     <>
-      <Card className="rounded-[32px] bg-primary text-primary-foreground border-none">
+      <Card className="rounded-[32px] bg-card text-primary-foreground border-none">
         <CardContent className="p-6 flex flex-col justify-between h-full min-h-[160px]">
           <div className="flex justify-between items-start">
-            <span className="text-sm font-medium">Published Blogs</span>
-            <div className="w-8 h-8 rounded-full bg-white text-primary flex items-center justify-center">
+            <span className="text-sm font-medium text-foreground">Published Blogs</span>
+            <div className="w-8 h-8 border border-border rounded-full bg-card text-muted-foreground flex items-center justify-center">
               <ArrowUpRight size={16} />
             </div>
           </div>
-          <div className="mt-4 mb-2 text-4xl font-bold">
+          <div className="mt-4 mb-2 text-4xl text-foreground font-bold">
             {data?.published ?? 0}
           </div>
           <div className="flex items-center gap-2 mt-auto text-xs text-primary-foreground/80">
-            <div className="flex items-center justify-center w-5 h-5 rounded bg-primary-foreground/20">
+            <div className="flex items-center justify-center w-5 h-5 rounded bg-primary-foreground/20 text-foreground">
               <TrendingUp size={12} />
             </div>
-            <span>Increased from last month</span>
+            <span className="text-foreground">Increased from last month</span>
           </div>
         </CardContent>
       </Card>
